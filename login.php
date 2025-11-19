@@ -1,3 +1,6 @@
+<?php
+session_start();
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -36,7 +39,26 @@
         <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
             <h1 class="text-3xl font-bold text-purple-600 text-center mb-8">Bem vindo de volta!</h1>
             
-            <form id="loginForm" class="space-y-6">
+            <?php
+            // Exibir mensagens de erro
+            if (isset($_SESSION['login_errors']) && !empty($_SESSION['login_errors'])) {
+                echo '<div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">';
+                foreach ($_SESSION['login_errors'] as $error) {
+                    echo '<p>' . htmlspecialchars($error) . '</p>';
+                }
+                echo '</div>';
+                unset($_SESSION['login_errors']);
+            }
+            
+            // Exibir mensagem de sucesso no cadastro
+            if (isset($_GET['cadastro']) && $_GET['cadastro'] === 'success') {
+                echo '<div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">';
+                echo '<p>Cadastro realizado com sucesso! Aguarde a validação do administrador.</p>';
+                echo '</div>';
+            }
+            ?>
+            
+            <form id="loginForm" action="processar_login.php" method="POST" class="space-y-6">
                 <!-- Email Field -->
                 <div>
                     <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email</label>
@@ -115,32 +137,6 @@
 
 
     <script>
-        // Handle login form submission
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            
-            // Check if user exists in localStorage
-            const users = JSON.parse(localStorage.getItem('users') || '[]');
-            const user = users.find(u => u.email === email);
-            
-            if (user && user.password === password) {
-                // Store logged in user
-                localStorage.setItem('currentUser', JSON.stringify(user));
-                
-                // Redirect based on user type
-                if (user.type === 'company') {
-                    window.location.href = 'perfil-empresa.php';
-                } else {
-                    window.location.href = 'perfil-pcd.php';
-                }
-            } else {
-                alert('Email ou senha incorretos. Por favor, tente novamente.');
-            }
-        });
-        
         // Handle Google login
         function loginWithGoogle() {
             alert('Funcionalidade de login com Google será implementada em breve!');

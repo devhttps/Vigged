@@ -1,0 +1,498 @@
+/**
+ * API Client - Vigged
+ * Funções para comunicação com APIs do backend
+ */
+
+const API_BASE_URL = 'api';
+
+/**
+ * Buscar vagas com filtros
+ * @param {Object} filters Filtros de busca
+ * @returns {Promise} Promise com dados das vagas
+ */
+async function buscarVagas(filters = {}) {
+    const params = new URLSearchParams();
+    
+    if (filters.q) params.append('q', filters.q);
+    if (filters.localizacao) params.append('localizacao', filters.localizacao);
+    if (filters.tipo_contrato) params.append('tipo_contrato', filters.tipo_contrato);
+    if (filters.destacada !== undefined) params.append('destacada', filters.destacada ? 1 : 0);
+    if (filters.page) params.append('page', filters.page);
+    if (filters.limit) params.append('limit', filters.limit);
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/buscar_vagas.php?${params}`);
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Erro ao buscar vagas:', error);
+        return { success: false, error: 'Erro ao buscar vagas' };
+    }
+}
+
+/**
+ * Obter dados da empresa logada
+ * @returns {Promise} Promise com dados da empresa
+ */
+async function obterDadosEmpresa() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/dados_empresa.php`);
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Erro ao obter dados da empresa:', error);
+        return { success: false, error: 'Erro ao carregar dados' };
+    }
+}
+
+/**
+ * Obter vagas da empresa logada
+ * @param {string} status Status das vagas (ativa, pausada, encerrada, todas)
+ * @returns {Promise} Promise com vagas da empresa
+ */
+async function obterVagasEmpresa(status = 'ativa') {
+    try {
+        const response = await fetch(`${API_BASE_URL}/vagas_empresa.php?status=${status}`);
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Erro ao obter vagas da empresa:', error);
+        return { success: false, error: 'Erro ao carregar vagas' };
+    }
+}
+
+/**
+ * Publicar/Atualizar vaga
+ * @param {Object} vagaData Dados da vaga
+ * @returns {Promise} Promise com resultado
+ */
+async function salvarVaga(vagaData) {
+    try {
+        const formData = new FormData();
+        formData.append('titulo', vagaData.titulo);
+        formData.append('descricao', vagaData.descricao);
+        formData.append('requisitos', vagaData.requisitos || '');
+        formData.append('localizacao', vagaData.localizacao);
+        formData.append('tipo_contrato', vagaData.tipo_contrato);
+        formData.append('faixa_salarial', vagaData.faixa_salarial || '');
+        formData.append('destacada', vagaData.destacada ? 'sim' : 'nao');
+        
+        if (vagaData.job_id) {
+            formData.append('action', 'update');
+            formData.append('job_id', vagaData.job_id);
+        } else {
+            formData.append('action', 'create');
+        }
+        
+        const response = await fetch('processar_vaga.php', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Erro ao salvar vaga:', error);
+        return { success: false, errors: ['Erro ao salvar vaga'] };
+    }
+}
+
+/**
+ * Obter dados do candidato PCD logado
+ * @returns {Promise} Promise com dados do candidato
+ */
+async function obterDadosPCD() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/dados_pcd.php`);
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Erro ao obter dados do PCD:', error);
+        return { success: false, error: 'Erro ao carregar dados' };
+    }
+}
+
+/**
+ * Candidatar-se a uma vaga
+ * @param {number} jobId ID da vaga
+ * @param {string} mensagem Mensagem opcional
+ * @param {File} curriculo Arquivo de currículo (opcional)
+ * @returns {Promise} Promise com resultado
+ */
+async function candidatarVaga(jobId, mensagem = '', curriculo = null) {
+    try {
+        const formData = new FormData();
+        formData.append('job_id', jobId);
+        formData.append('mensagem', mensagem);
+        if (curriculo) {
+            formData.append('curriculo', curriculo);
+        }
+        
+        const response = await fetch('processar_candidatura.php', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (response.redirected) {
+            window.location.href = response.url;
+            return { success: true };
+        }
+        
+        // Se houver erro, será redirecionado com mensagem na sessão
+        return { success: true };
+    } catch (error) {
+        console.error('Erro ao candidatar-se:', error);
+        return { success: false, error: 'Erro ao processar candidatura' };
+    }
+}
+
+/**
+ * Admin - Listar usuários PCD
+ * @param {Object} filters Filtros
+ * @returns {Promise} Promise com lista de usuários
+ */
+async function adminListarUsuarios(filters = {}) {
+    const params = new URLSearchParams();
+    if (filters.status) params.append('status', filters.status);
+    if (filters.page) params.append('page', filters.page);
+    if (filters.limit) params.append('limit', filters.limit);
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/admin_usuarios.php?action=list&${params}`);
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Erro ao listar usuários:', error);
+        return { success: false, error: 'Erro ao carregar usuários' };
+    }
+}
+
+/**
+ * Admin - Atualizar status de usuário
+ * @param {number} userId ID do usuário
+ * @param {string} status Novo status
+ * @returns {Promise} Promise com resultado
+ */
+async function adminAtualizarStatusUsuario(userId, status) {
+    try {
+        const formData = new FormData();
+        formData.append('user_id', userId);
+        formData.append('status', status);
+        
+        const response = await fetch(`${API_BASE_URL}/admin_usuarios.php?action=update_status`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Erro ao atualizar status:', error);
+        return { success: false, error: 'Erro ao atualizar status' };
+    }
+}
+
+/**
+ * Admin - Listar empresas
+ * @param {Object} filters Filtros
+ * @returns {Promise} Promise com lista de empresas
+ */
+async function adminListarEmpresas(filters = {}) {
+    const params = new URLSearchParams();
+    if (filters.status) params.append('status', filters.status);
+    if (filters.page) params.append('page', filters.page);
+    if (filters.limit) params.append('limit', filters.limit);
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/admin_empresas.php?action=list&${params}`);
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Erro ao listar empresas:', error);
+        return { success: false, error: 'Erro ao carregar empresas' };
+    }
+}
+
+/**
+ * Admin - Atualizar status de empresa
+ * @param {number} companyId ID da empresa
+ * @param {string} status Novo status
+ * @returns {Promise} Promise com resultado
+ */
+async function adminAtualizarStatusEmpresa(companyId, status) {
+    try {
+        const formData = new FormData();
+        formData.append('company_id', companyId);
+        formData.append('status', status);
+        
+        const response = await fetch(`${API_BASE_URL}/admin_empresas.php?action=update_status`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Erro ao atualizar status:', error);
+        return { success: false, error: 'Erro ao atualizar status' };
+    }
+}
+
+/**
+ * Obter detalhes de uma vaga específica
+ * @param {number} jobId ID da vaga
+ * @returns {Promise} Promise com detalhes da vaga
+ */
+async function obterDetalhesVaga(jobId) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/detalhes_vaga.php?id=${jobId}`);
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Erro ao obter detalhes da vaga:', error);
+        return { success: false, error: 'Erro ao carregar vaga' };
+    }
+}
+
+/**
+ * Gerenciar vaga (pausar, ativar, encerrar, deletar)
+ * @param {number} jobId ID da vaga
+ * @param {string} action Ação (pausar, ativar, encerrar, deletar)
+ * @returns {Promise} Promise com resultado
+ */
+async function gerenciarVaga(jobId, action) {
+    try {
+        const formData = new FormData();
+        formData.append('job_id', jobId);
+        formData.append('action', action);
+        
+        const response = await fetch(`${API_BASE_URL}/gerenciar_vaga.php`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Erro ao gerenciar vaga:', error);
+        return { success: false, error: 'Erro ao processar ação' };
+    }
+}
+
+/**
+ * Obter candidaturas de uma vaga (empresa)
+ * @param {number} jobId ID da vaga
+ * @param {string} status Status das candidaturas (opcional)
+ * @returns {Promise} Promise com candidaturas
+ */
+async function obterCandidaturasVaga(jobId, status = 'todas') {
+    try {
+        const params = new URLSearchParams();
+        params.append('job_id', jobId);
+        if (status !== 'todas') params.append('status', status);
+        
+        const response = await fetch(`${API_BASE_URL}/candidaturas_vaga.php?${params}`);
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Erro ao obter candidaturas:', error);
+        return { success: false, error: 'Erro ao carregar candidaturas' };
+    }
+}
+
+/**
+ * Gerenciar candidatura (aprovar, rejeitar, cancelar)
+ * @param {number} applicationId ID da candidatura
+ * @param {string} action Ação (aprovar, rejeitar, cancelar, em_analise)
+ * @param {string} mensagem Mensagem opcional (para rejeição)
+ * @returns {Promise} Promise com resultado
+ */
+async function gerenciarCandidatura(applicationId, action, mensagem = '') {
+    try {
+        const formData = new FormData();
+        formData.append('application_id', applicationId);
+        formData.append('action', action);
+        if (mensagem) formData.append('mensagem', mensagem);
+        
+        const response = await fetch(`${API_BASE_URL}/gerenciar_candidatura.php`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Erro ao gerenciar candidatura:', error);
+        return { success: false, error: 'Erro ao processar ação' };
+    }
+}
+
+/**
+ * Obter estatísticas
+ * @param {string} type Tipo (general, company, admin)
+ * @returns {Promise} Promise com estatísticas
+ */
+async function obterEstatisticas(type = 'general') {
+    try {
+        const response = await fetch(`${API_BASE_URL}/estatisticas.php?type=${type}`);
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Erro ao obter estatísticas:', error);
+        return { success: false, error: 'Erro ao carregar estatísticas' };
+    }
+}
+
+/**
+ * Atualizar perfil PCD
+ * @param {Object} perfilData Dados do perfil
+ * @returns {Promise} Promise com resultado
+ */
+async function atualizarPerfilPCD(perfilData) {
+    try {
+        const formData = new FormData();
+        Object.keys(perfilData).forEach(key => {
+            if (perfilData[key] !== null && perfilData[key] !== undefined) {
+                if (key === 'recursos') {
+                    perfilData[key].forEach(r => formData.append('recursos[]', r));
+                } else {
+                    formData.append(key, perfilData[key]);
+                }
+            }
+        });
+        
+        const response = await fetch('processar_perfil_pcd.php', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (response.redirected) {
+            window.location.href = response.url;
+            return { success: true };
+        }
+        
+        return { success: true };
+    } catch (error) {
+        console.error('Erro ao atualizar perfil:', error);
+        return { success: false, error: 'Erro ao atualizar perfil' };
+    }
+}
+
+/**
+ * Atualizar perfil Empresa
+ * @param {Object} perfilData Dados do perfil
+ * @returns {Promise} Promise com resultado
+ */
+async function atualizarPerfilEmpresa(perfilData) {
+    try {
+        const formData = new FormData();
+        Object.keys(perfilData).forEach(key => {
+            if (perfilData[key] !== null && perfilData[key] !== undefined) {
+                if (key === 'recursos_acessibilidade') {
+                    perfilData[key].forEach(r => formData.append('recursos_acessibilidade[]', r));
+                } else {
+                    formData.append(key, perfilData[key]);
+                }
+            }
+        });
+        
+        const response = await fetch('processar_perfil_empresa.php', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (response.redirected) {
+            window.location.href = response.url;
+            return { success: true };
+        }
+        
+        return { success: true };
+    } catch (error) {
+        console.error('Erro ao atualizar perfil:', error);
+        return { success: false, error: 'Erro ao atualizar perfil' };
+    }
+}
+
+/**
+ * Solicitar recuperação de senha
+ * @param {string} email Email do usuário
+ * @returns {Promise} Promise com resultado
+ */
+async function solicitarRecuperacaoSenha(email) {
+    try {
+        const formData = new FormData();
+        formData.append('email', email);
+        formData.append('action', 'request');
+        
+        const response = await fetch('processar_recuperar_senha.php', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (response.redirected) {
+            window.location.href = response.url;
+            return { success: true };
+        }
+        
+        return { success: true };
+    } catch (error) {
+        console.error('Erro ao solicitar recuperação:', error);
+        return { success: false, error: 'Erro ao processar solicitação' };
+    }
+}
+
+/**
+ * Resetar senha com token
+ * @param {string} token Token de recuperação
+ * @param {string} newPassword Nova senha
+ * @param {string} confirmPassword Confirmação da senha
+ * @returns {Promise} Promise com resultado
+ */
+async function resetarSenha(token, newPassword, confirmPassword) {
+    try {
+        const formData = new FormData();
+        formData.append('token', token);
+        formData.append('new_password', newPassword);
+        formData.append('confirm_password', confirmPassword);
+        formData.append('action', 'reset');
+        
+        const response = await fetch('processar_recuperar_senha.php', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (response.redirected) {
+            window.location.href = response.url;
+            return { success: true };
+        }
+        
+        return { success: true };
+    } catch (error) {
+        console.error('Erro ao resetar senha:', error);
+        return { success: false, error: 'Erro ao resetar senha' };
+    }
+}
+
+// Exportar funções para uso global
+window.ViggedAPI = {
+    buscarVagas,
+    obterDadosEmpresa,
+    obterVagasEmpresa,
+    salvarVaga,
+    obterDadosPCD,
+    candidatarVaga,
+    adminListarUsuarios,
+    adminAtualizarStatusUsuario,
+    adminListarEmpresas,
+    adminAtualizarStatusEmpresa,
+    obterDetalhesVaga,
+    gerenciarVaga,
+    obterCandidaturasVaga,
+    gerenciarCandidatura,
+    obterEstatisticas,
+    atualizarPerfilPCD,
+    atualizarPerfilEmpresa,
+    solicitarRecuperacaoSenha,
+    resetarSenha
+};
+

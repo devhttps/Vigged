@@ -1,0 +1,81 @@
+# Vigged - Configurações Apache
+# Plataforma de Inclusão e Oportunidades
+
+# Ativar RewriteEngine
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+    
+    # Redirecionar para HTTPS em produção (descomente quando usar SSL)
+    # RewriteCond %{HTTPS} off
+    # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+# Proteger arquivos sensíveis
+<FilesMatch "^(config|\.git|\.cursor|memory-bank)">
+    Require all denied
+</FilesMatch>
+
+# Permitir acesso ao instalador apenas se não estiver instalado
+<IfModule mod_rewrite.c>
+    RewriteCond %{REQUEST_URI} install
+    RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI}/../.installed -f
+    RewriteRule ^install - [F,L]
+</IfModule>
+
+# Proteger arquivos de configuração
+<FilesMatch "\.(sql|md|example)$">
+    Require all denied
+</FilesMatch>
+
+# Proteger database.php
+<Files "database.php">
+    Require all denied
+</Files>
+
+# Headers de Segurança
+<IfModule mod_headers.c>
+    # Prevenir clickjacking
+    Header always set X-Frame-Options "SAMEORIGIN"
+    
+    # Prevenir MIME type sniffing
+    Header always set X-Content-Type-Options "nosniff"
+    
+    # XSS Protection
+    Header always set X-XSS-Protection "1; mode=block"
+    
+    # Referrer Policy
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# Desabilitar listagem de diretórios
+Options -Indexes
+
+# Configurações de Upload
+php_value upload_max_filesize 10M
+php_value post_max_size 10M
+php_value max_execution_time 300
+php_value memory_limit 256M
+
+# Cache de arquivos estáticos
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+</IfModule>
+
+# Compressão GZIP
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
+</IfModule>
+
+# Charset UTF-8
+AddDefaultCharset UTF-8
+
+# Páginas de erro personalizadas (opcional)
+# ErrorDocument 404 /404.php
+# ErrorDocument 500 /500.php
+
