@@ -339,71 +339,10 @@
         </form>
     </div>
 
-    <!-- Footer -->
-    <footer class="bg-white border-t border-gray-200 py-12 mt-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid md:grid-cols-4 gap-8 mb-8">
-                <!-- Logo and Social -->
-                <div>
-                    <h3 class="text-2xl font-bold text-purple-600 mb-4">Vigged</h3>
-                    <p class="text-gray-600 text-sm mb-4">
-                        Conectando talentos PCD às melhores oportunidades do mercado.
-                    </p>
-                    <div class="flex space-x-4">
-                        <a href="#" class="text-purple-600 hover:text-purple-700">
-                            <i class="fab fa-facebook text-xl"></i>
-                        </a>
-                        <a href="#" class="text-purple-600 hover:text-purple-700">
-                            <i class="fab fa-twitter text-xl"></i>
-                        </a>
-                        <a href="#" class="text-purple-600 hover:text-purple-700">
-                            <i class="fab fa-instagram text-xl"></i>
-                        </a>
-                        <a href="#" class="text-purple-600 hover:text-purple-700">
-                            <i class="fab fa-linkedin text-xl"></i>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Column 1 -->
-                <div>
-                    <h4 class="font-bold text-gray-800 mb-4">Empresa</h4>
-                    <ul class="space-y-2">
-                        <li><a href="#" class="text-gray-600 hover:text-purple-600">Sobre nós</a></li>
-                        <li><a href="#" class="text-gray-600 hover:text-purple-600">Carreiras</a></li>
-                        <li><a href="#" class="text-gray-600 hover:text-purple-600">Blog</a></li>
-                        <li><a href="#" class="text-gray-600 hover:text-purple-600">Contato</a></li>
-                    </ul>
-                </div>
-
-                <!-- Column 2 -->
-                <div>
-                    <h4 class="font-bold text-gray-800 mb-4">Recursos</h4>
-                    <ul class="space-y-2">
-                        <li><a href="vagas.php" class="text-gray-600 hover:text-purple-600">Vagas</a></li>
-                        <li><a href="empresas.php" class="text-gray-600 hover:text-purple-600">Empresas</a></li>
-                        <li><a href="cadastro.php" class="text-gray-600 hover:text-purple-600">Cadastro</a></li>
-                        <li><a href="suporte.php" class="text-gray-600 hover:text-purple-600">Suporte</a></li>
-                    </ul>
-                </div>
-
-                <!-- Column 3 -->
-                <div>
-                    <h4 class="font-bold text-gray-800 mb-4">Legal</h4>
-                    <ul class="space-y-2">
-                        <li><a href="#" class="text-gray-600 hover:text-purple-600">Termos de uso</a></li>
-                        <li><a href="#" class="text-gray-600 hover:text-purple-600">Política de privacidade</a></li>
-                        <li><a href="#" class="text-gray-600 hover:text-purple-600">Cookies</a></li>
-                        <li><a href="#" class="text-gray-600 hover:text-purple-600">Acessibilidade</a></li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="border-t border-gray-200 pt-8 text-center text-gray-600 text-sm">
-                <p>&copy; 2025 Vigged. Todos os direitos reservados.</p>
-            </div>
-        </div>
-    </footer>
+<?php
+// Incluir footer padrão
+include 'includes/footer.php';
+?>
 
     <script>
         window.addEventListener('DOMContentLoaded', function() {

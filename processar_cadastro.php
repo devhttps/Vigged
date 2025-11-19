@@ -7,6 +7,7 @@
 require_once 'config/constants.php';
 require_once 'config/database.php';
 require_once 'config/auth.php';
+require_once 'includes/functions.php';
 
 // Iniciar sessão segura
 startSecureSession();
@@ -15,22 +16,6 @@ startSecureSession();
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: cadastro.php');
     exit;
-}
-
-// Função para sanitizar dados
-function sanitizeInput($data) {
-    return htmlspecialchars(strip_tags(trim($data)));
-}
-
-// Função para validar CPF básico
-function validateCPF($cpf) {
-    $cpf = preg_replace('/[^0-9]/', '', $cpf);
-    return strlen($cpf) === 11;
-}
-
-// Função para validar email
-function validateEmail($email) {
-    return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
 }
 
 // Coletar e sanitizar dados do formulário

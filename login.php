@@ -2,45 +2,40 @@
 // Iniciar sessão para exibir mensagens
 require_once 'config/auth.php';
 startSecureSession();
-?>
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Vigged</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-    </style>
-</head>
-<body class="bg-gray-50">
-    <!-- Navigation -->
-    <nav class="bg-purple-600 text-white h-16">
-        <div class="max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
-            <a href="index.php" class="text-2xl font-bold">Vigged</a>
-            <div class="hidden md:flex space-x-6">
-                <a href="index.php" class="hover:text-purple-200 transition">Início</a>
-                <a href="vagas.php" class="hover:text-purple-200 transition">Vagas</a>
-                <a href="empresas.php" class="hover:text-purple-200 transition">Empresas</a>
-                <a href="sobre-nos.php" class="hover:text-purple-200 transition">Sobre nós</a>
-                <a href="suporte.php" class="hover:text-purple-200 transition">Contato</a>
-            </div>
-            <div class="flex space-x-3">
-                <a href="login.php" class="px-4 py-2 border border-white rounded-lg hover:bg-white hover:text-purple-600 transition">Login</a>
-                <a href="pre-cadastro.php" class="px-4 py-2 bg-white text-purple-600 rounded-lg hover:bg-purple-50 transition">Cadastrar-se</a>
-            </div>
-        </div>
-    </nav>
 
-    <!-- Login Form -->
+// Configurar título da página
+$title = 'Login';
+
+// Incluir head
+include 'includes/head.php';
+
+// Incluir navegação pública
+$navType = 'public';
+include 'includes/nav.php';
+?>
+
+    <!-- Login/Cadastro Form -->
     <div class="min-h-screen flex items-center justify-center py-12 px-4">
         <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
-            <h1 class="text-3xl font-bold text-purple-600 text-center mb-8">Bem vindo de volta!</h1>
-            
+            <!-- Tabs -->
+            <div class="flex border-b border-gray-200 mb-6">
+                <button 
+                    id="loginTab"
+                    onclick="switchTab('login')"
+                    class="flex-1 py-3 px-4 text-center font-medium text-purple-600 border-b-2 border-purple-600 transition"
+                >
+                    Login
+                </button>
+                <button 
+                    id="cadastroTab"
+                    onclick="switchTab('cadastro')"
+                    class="flex-1 py-3 px-4 text-center font-medium text-gray-500 hover:text-purple-600 transition"
+                >
+                    Cadastrar-se
+                </button>
+            </div>
+
+            <!-- Mensagens -->
             <?php
             // Exibir mensagens de erro
             if (isset($_SESSION['login_errors']) && !empty($_SESSION['login_errors'])) {
@@ -60,7 +55,10 @@ startSecureSession();
             }
             ?>
             
-            <form id="loginForm" action="processar_login.php" method="POST" class="space-y-6">
+            <!-- Login Form -->
+            <div id="loginFormContainer">
+                <h1 class="text-2xl font-bold text-purple-600 text-center mb-6">Bem vindo de volta!</h1>
+                <form id="loginForm" action="processar_login.php" method="POST" class="space-y-6">
                 <!-- Email Field -->
                 <div>
                     <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email</label>
@@ -124,25 +122,191 @@ startSecureSession();
                     </svg>
                     <span>Entrar com Google</span>
                 </button>
-            </form>
+                </form>
+            </div>
 
-            <!-- Sign Up Link -->
-            <div class="mt-6 text-center">
-                <p class="text-gray-600">
-                    Não tem uma conta? 
-                    <a href="pre-cadastro.php" class="text-purple-600 hover:text-purple-700 font-medium">Cadastre-se</a>
-                </p>
+            <!-- Cadastro Form -->
+            <div id="cadastroFormContainer" class="hidden">
+                <h1 class="text-2xl font-bold text-purple-600 text-center mb-6">Crie a sua conta</h1>
+                <form id="preRegistrationForm" class="space-y-6">
+                    <!-- Nome Completo -->
+                    <div>
+                        <label for="nomeCompleto" class="block text-sm font-medium text-gray-700 mb-2">
+                            Nome completo
+                        </label>
+                        <input 
+                            type="text" 
+                            id="nomeCompleto" 
+                            name="nomeCompleto"
+                            placeholder="Coloque seu nome completo"
+                            required
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition"
+                        >
+                    </div>
+
+                    <!-- Email -->
+                    <div>
+                        <label for="emailCadastro" class="block text-sm font-medium text-gray-700 mb-2">
+                            Email
+                        </label>
+                        <input 
+                            type="email" 
+                            id="emailCadastro" 
+                            name="email"
+                            placeholder="Coloque seu endereço de Email"
+                            required
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition"
+                        >
+                    </div>
+
+                    <!-- Número de Celular -->
+                    <div>
+                        <label for="celular" class="block text-sm font-medium text-gray-700 mb-2">
+                            Número de celular
+                        </label>
+                        <input 
+                            type="tel" 
+                            id="celular" 
+                            name="celular"
+                            placeholder="Coloque o seu número de celular"
+                            required
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition"
+                        >
+                    </div>
+
+                    <!-- Tipo de Cadastro -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-3">
+                            Você é:
+                        </label>
+                        <div class="space-y-2">
+                            <label class="flex items-center cursor-pointer">
+                                <input 
+                                    type="radio" 
+                                    name="tipoCadastro" 
+                                    value="pcd"
+                                    required
+                                    class="w-4 h-4 text-purple-600 focus:ring-purple-500"
+                                >
+                                <span class="ml-2 text-gray-700">Pessoa com Deficiência (PCD)</span>
+                            </label>
+                            <label class="flex items-center cursor-pointer">
+                                <input 
+                                    type="radio" 
+                                    name="tipoCadastro" 
+                                    value="empresa"
+                                    class="w-4 h-4 text-purple-600 focus:ring-purple-500"
+                                >
+                                <span class="ml-2 text-gray-700">Empresa</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Terms Checkbox -->
+                    <div>
+                        <label class="flex items-start cursor-pointer">
+                            <input 
+                                type="checkbox" 
+                                id="termsAccepted"
+                                required
+                                class="w-4 h-4 mt-1 text-purple-600 focus:ring-purple-500 rounded"
+                            >
+                            <span class="ml-2 text-sm text-gray-700">
+                                Eu concordo com os 
+                                <a href="#" class="text-purple-600 hover:underline">Termos de serviço</a> 
+                                e a 
+                                <a href="#" class="text-purple-600 hover:underline">Política de Privacidade</a>
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button 
+                        type="submit"
+                        class="w-full bg-purple-600 text-white py-3 rounded-lg font-medium hover:bg-purple-700 transition"
+                    >
+                        Criar conta
+                    </button>
+                </form>
             </div>
         </div>
     </div>
 
-
-
     <script>
+        // Switch between Login and Cadastro tabs
+        function switchTab(tab) {
+            const loginTab = document.getElementById('loginTab');
+            const cadastroTab = document.getElementById('cadastroTab');
+            const loginContainer = document.getElementById('loginFormContainer');
+            const cadastroContainer = document.getElementById('cadastroFormContainer');
+
+            if (tab === 'login') {
+                loginTab.classList.add('text-purple-600', 'border-purple-600', 'border-b-2');
+                loginTab.classList.remove('text-gray-500');
+                cadastroTab.classList.remove('text-purple-600', 'border-purple-600', 'border-b-2');
+                cadastroTab.classList.add('text-gray-500');
+                loginContainer.classList.remove('hidden');
+                cadastroContainer.classList.add('hidden');
+            } else {
+                cadastroTab.classList.add('text-purple-600', 'border-purple-600', 'border-b-2');
+                cadastroTab.classList.remove('text-gray-500');
+                loginTab.classList.remove('text-purple-600', 'border-purple-600', 'border-b-2');
+                loginTab.classList.add('text-gray-500');
+                cadastroContainer.classList.remove('hidden');
+                loginContainer.classList.add('hidden');
+            }
+        }
+
         // Handle Google login
         function loginWithGoogle() {
             alert('Funcionalidade de login com Google será implementada em breve!');
             // In a real implementation, this would integrate with Google OAuth
+        }
+
+        // Handle pre-registration form submission
+        document.getElementById('preRegistrationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form data
+            const formData = {
+                nomeCompleto: document.getElementById('nomeCompleto').value,
+                email: document.getElementById('emailCadastro').value,
+                celular: document.getElementById('celular').value,
+                tipoCadastro: document.querySelector('input[name="tipoCadastro"]:checked').value,
+                termsAccepted: document.getElementById('termsAccepted').checked,
+                timestamp: new Date().toISOString()
+            };
+            
+            // Save to localStorage
+            localStorage.setItem('preRegistrationData', JSON.stringify(formData));
+            
+            // Redirect based on type
+            if (formData.tipoCadastro === 'empresa') {
+                window.location.href = 'cadastro-empresa.php';
+            } else {
+                window.location.href = 'cadastro.php';
+            }
+        });
+
+        // Phone mask
+        document.getElementById('celular').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 11) value = value.slice(0, 11);
+            
+            if (value.length > 6) {
+                value = value.replace(/^(\d{2})(\d{5})(\d{0,4}).*/, '($1) $2-$3');
+            } else if (value.length > 2) {
+                value = value.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
+            } else if (value.length > 0) {
+                value = value.replace(/^(\d*)/, '($1');
+            }
+            
+            e.target.value = value;
+        });
+
+        // Check URL parameter to switch to cadastro tab
+        if (window.location.search.includes('cadastro=true')) {
+            switchTab('cadastro');
         }
     </script>
 </body>

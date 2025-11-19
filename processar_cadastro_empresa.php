@@ -6,30 +6,16 @@
 
 require_once 'config/constants.php';
 require_once 'config/database.php';
+require_once 'config/auth.php';
+require_once 'includes/functions.php';
 
-// Iniciar sessão
-session_start();
+// Iniciar sessão segura
+startSecureSession();
 
 // Verificar se é requisição POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: cadastro-empresa.php');
     exit;
-}
-
-// Função para sanitizar dados
-function sanitizeInput($data) {
-    return htmlspecialchars(strip_tags(trim($data)));
-}
-
-// Função para validar CNPJ básico
-function validateCNPJ($cnpj) {
-    $cnpj = preg_replace('/[^0-9]/', '', $cnpj);
-    return strlen($cnpj) === 14;
-}
-
-// Função para validar email
-function validateEmail($email) {
-    return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
 }
 
 // Coletar e sanitizar dados do formulário
