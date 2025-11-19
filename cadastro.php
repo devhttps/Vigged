@@ -142,6 +142,37 @@
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         >
                     </div>
+
+                    <div>
+                        <label for="senha" class="block text-sm font-medium text-gray-700 mb-2">
+                            Senha *
+                        </label>
+                        <input 
+                            type="password" 
+                            id="senha" 
+                            name="senha" 
+                            required 
+                            minlength="6"
+                            placeholder="Mínimo 6 caracteres"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        >
+                        <p class="text-xs text-gray-500 mt-1">A senha deve ter no mínimo 6 caracteres</p>
+                    </div>
+
+                    <div>
+                        <label for="confirmar_senha" class="block text-sm font-medium text-gray-700 mb-2">
+                            Confirmar Senha *
+                        </label>
+                        <input 
+                            type="password" 
+                            id="confirmar_senha" 
+                            name="confirmar_senha" 
+                            required 
+                            minlength="6"
+                            placeholder="Digite a senha novamente"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        >
+                    </div>
                 </div>
             </div>
 
@@ -397,7 +428,25 @@ include 'includes/footer.php';
             }
         });
 
-        document.querySelector('form').addEventListener('submit', function() {
+        // Validação de senha
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const senha = document.getElementById('senha').value;
+            const confirmarSenha = document.getElementById('confirmar_senha').value;
+            
+            if (senha !== confirmarSenha) {
+                e.preventDefault();
+                alert('As senhas não coincidem. Por favor, verifique e tente novamente.');
+                document.getElementById('confirmar_senha').focus();
+                return false;
+            }
+            
+            if (senha.length < 6) {
+                e.preventDefault();
+                alert('A senha deve ter no mínimo 6 caracteres.');
+                document.getElementById('senha').focus();
+                return false;
+            }
+            
             localStorage.removeItem('preRegistrationData');
             console.log('[v0] Pre-registration data cleared from localStorage');
         });

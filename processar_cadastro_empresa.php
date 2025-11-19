@@ -51,10 +51,8 @@ $telefone_responsavel = sanitizeInput($_POST['telefone_responsavel'] ?? '');
 $ja_contrata_pcd = isset($_POST['ja_contrata_pcd']) && $_POST['ja_contrata_pcd'] === 'sim';
 $recursos_acessibilidade = isset($_POST['recursos_acessibilidade']) ? $_POST['recursos_acessibilidade'] : [];
 $politica_inclusao = sanitizeInput($_POST['politica_inclusao'] ?? '');
-
-// Gerar senha temporária
-$senha_temporaria = bin2hex(random_bytes(8));
-$senha_hash = password_hash($senha_temporaria, PASSWORD_DEFAULT);
+$senha = $_POST['senha'] ?? '';
+$confirmar_senha = $_POST['confirmar_senha'] ?? '';
 
 // Validações
 $errors = [];
@@ -73,6 +71,14 @@ if (empty($cnpj) || !validateCNPJ($cnpj)) {
 
 if (empty($email_corporativo) || !validateEmail($email_corporativo)) {
     $errors[] = "Email corporativo válido é obrigatório.";
+}
+
+if (empty($senha) || strlen($senha) < 6) {
+    $errors[] = "Senha é obrigatória e deve ter no mínimo 6 caracteres.";
+}
+
+if ($senha !== $confirmar_senha) {
+    $errors[] = "As senhas não coincidem.";
 }
 
 if (empty($porte_empresa)) {
@@ -179,6 +185,9 @@ if (!empty($errors)) {
     header('Location: cadastro-empresa.php');
     exit;
 }
+
+// Hash da senha
+$senha_hash = password_hash($senha, PASSWORD_DEFAULT);
 
 // Inserir no banco de dados
 $pdo = getDBConnection();

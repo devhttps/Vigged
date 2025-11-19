@@ -30,10 +30,8 @@ $cid = sanitizeInput($_POST['cid'] ?? '');
 $possui_laudo = isset($_POST['possui_laudo']) && $_POST['possui_laudo'] === 'sim';
 $recursos_acessibilidade = isset($_POST['recursos']) ? $_POST['recursos'] : [];
 $outras_necessidades = sanitizeInput($_POST['outras_necessidades'] ?? '');
-
-// Gerar senha temporária (será alterada no primeiro login)
-$senha_temporaria = bin2hex(random_bytes(8));
-$senha_hash = password_hash($senha_temporaria, PASSWORD_DEFAULT);
+$senha = $_POST['senha'] ?? '';
+$confirmar_senha = $_POST['confirmar_senha'] ?? '';
 
 // Validações
 $errors = [];
@@ -44,6 +42,14 @@ if (empty($nome)) {
 
 if (empty($email) || !validateEmail($email)) {
     $errors[] = "Email válido é obrigatório.";
+}
+
+if (empty($senha) || strlen($senha) < 6) {
+    $errors[] = "Senha é obrigatória e deve ter no mínimo 6 caracteres.";
+}
+
+if ($senha !== $confirmar_senha) {
+    $errors[] = "As senhas não coincidem.";
 }
 
 if (!empty($cpf) && !validateCPF($cpf)) {
@@ -112,6 +118,9 @@ if (!empty($errors)) {
     header('Location: cadastro.php');
     exit;
 }
+
+// Hash da senha
+$senha_hash = password_hash($senha, PASSWORD_DEFAULT);
 
 // Inserir no banco de dados
 $pdo = getDBConnection();
