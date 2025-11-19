@@ -14,7 +14,7 @@ requireAuth(USER_TYPE_PCD);
 header('Content-Type: application/json');
 
 $currentUser = getCurrentUser();
-$user_id = $currentUser['user_id'] ?? null;
+$user_id = $currentUser['id'] ?? null;
 
 if (!$user_id) {
     http_response_code(401);
