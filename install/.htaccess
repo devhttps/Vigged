@@ -1,0 +1,16 @@
+# Proteger instalador após instalação
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Bloquear acesso se já instalado (exceto remove.php e test.php)
+    RewriteCond %{DOCUMENT_ROOT}/../.installed -f
+    RewriteCond %{REQUEST_URI} !/install/remove\.php$
+    RewriteCond %{REQUEST_URI} !/install/test\.php$
+    RewriteRule ^(.*)$ - [F,L]
+</IfModule>
+
+# Permitir acesso aos arquivos do instalador
+<FilesMatch "^(index|install|check|success|remove|test)\.php$">
+    Require all granted
+</FilesMatch>
+

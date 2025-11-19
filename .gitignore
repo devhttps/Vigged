@@ -1,0 +1,15 @@
+# Pastas de configuração do Cursor
+.cursor/
+
+# Banco de memória do projeto
+memory-bank/
+
+# Configurações sensíveis (não commitar credenciais)
+config/database.php
+
+# Uploads de usuários
+uploads/
+
+# Arquivo de marcação de instalação
+.installed
+

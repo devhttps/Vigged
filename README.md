@@ -71,6 +71,32 @@ Vigged/
 
 ## 📦 Instalação
 
+### 🚀 Instalação Rápida (Recomendado)
+
+**Use o instalador web automático:**
+
+1. Acesse: `http://localhost/vigged/install` (ou sua URL)
+2. Siga as instruções na tela
+3. Preencha os dados do banco de dados
+4. Configure o administrador
+5. Clique em "Instalar Vigged"
+
+O instalador irá:
+- ✅ Verificar pré-requisitos automaticamente
+- ✅ Criar o banco de dados
+- ✅ Importar estrutura do banco
+- ✅ Criar arquivos de configuração
+- ✅ Criar diretórios necessários
+- ✅ Configurar administrador
+
+**Após a instalação:** Remova o instalador acessando `http://localhost/vigged/install/remove.php`
+
+---
+
+### Instalação Manual
+
+Se preferir instalar manualmente ou o instalador não funcionar:
+
 ### Pré-requisitos
 
 - PHP 7.4 ou superior
@@ -201,6 +227,12 @@ O arquivo `.htaccess` já está incluído no projeto com configurações de segu
 
 ### Passo 8: Acessar o Sistema
 
+**Opção 1: Usar Instalador Web (Recomendado)**
+1. Acesse: `http://localhost/vigged/install`
+2. Siga as instruções do instalador
+3. Após instalação, remova o instalador: `http://localhost/vigged/install/remove.php`
+
+**Opção 2: Acesso Manual**
 1. Abra o navegador: `http://localhost/vigged`
 2. Faça login com o administrador padrão:
    - **Email:** `admin@vigged.com`
@@ -342,6 +374,12 @@ O arquivo `.htaccess` já está incluído no projeto. No aaPanel, certifique-se 
 
 ### Passo 10: Acessar o Sistema
 
+**Opção 1: Usar Instalador Web (Recomendado)**
+1. Acesse: `https://seu-dominio.com/install` (ou `http://` se sem SSL)
+2. Siga as instruções do instalador
+3. Após instalação, remova o instalador: `https://seu-dominio.com/install/remove.php`
+
+**Opção 2: Acesso Manual**
 1. Abra: `https://seu-dominio.com` (ou `http://` se sem SSL)
 2. Faça login com:
    - **Email:** `admin@vigged.com`
@@ -441,9 +479,11 @@ define('EMAIL_FROM', 'noreply@vigged.com.br');
 
 ### Documentação Técnica
 - `INSTALL.md` - Guia de instalação detalhado
+- `install/README.md` - Documentação do instalador web
 - `config/README.md` - Documentação de configuração
 - `api/README.md` - Documentação das APIs REST
 - `memory-bank/backend-completo.md` - Resumo técnico do backend
+- `memory-bank/instalador-web.md` - Documentação completa do instalador
 
 ### Documentação do Projeto (memory-bank/)
 - `projectbrief.md` - Visão geral e objetivos
