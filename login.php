@@ -55,7 +55,7 @@ startSecureSession();
             // Exibir mensagem de sucesso no cadastro
             if (isset($_GET['cadastro']) && $_GET['cadastro'] === 'success') {
                 echo '<div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">';
-                echo '<p>Cadastro realizado com sucesso! Aguarde a validação do administrador.</p>';
+                echo '<p>Cadastro realizado com sucesso! Você já pode fazer login.</p>';
                 echo '</div>';
             }
             ?>

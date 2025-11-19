@@ -217,7 +217,7 @@ try {
             :email_corporativo, :telefone_empresa,
             :nome_responsavel, :cargo_responsavel, :email_responsavel, :telefone_responsavel,
             :ja_contrata_pcd, :recursos_acessibilidade, :politica_inclusao,
-            :documento_empresa_path, :logo_path, :senha, 'pendente'
+            :documento_empresa_path, :logo_path, :senha, 'ativa'
         )
     ");
     
@@ -255,7 +255,7 @@ try {
     
     // Sucesso
     $_SESSION['cadastro_empresa_success'] = true;
-    $_SESSION['cadastro_empresa_message'] = 'Cadastro da empresa realizado com sucesso! Aguarde a validação do administrador.';
+    $_SESSION['cadastro_empresa_message'] = 'Cadastro da empresa realizado com sucesso! Você já pode fazer login.';
     
     // TODO: Enviar email de confirmação
     

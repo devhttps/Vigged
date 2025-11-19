@@ -145,7 +145,7 @@ try {
         ) VALUES (
             :nome, :email, :senha, 'pcd', :cpf, :telefone, :data_nascimento,
             :tipo_deficiencia, :especifique_outra, :cid, :possui_laudo, :laudo_medico_path,
-            :recursos_acessibilidade, :outras_necessidades, 'pendente'
+            :recursos_acessibilidade, :outras_necessidades, 'ativo'
         )
     ");
     
@@ -169,7 +169,7 @@ try {
     
     // Sucesso - redirecionar para página de sucesso ou login
     $_SESSION['cadastro_success'] = true;
-    $_SESSION['cadastro_message'] = 'Cadastro realizado com sucesso! Aguarde a validação do administrador.';
+    $_SESSION['cadastro_message'] = 'Cadastro realizado com sucesso! Você já pode fazer login.';
     
     // TODO: Enviar email de confirmação
     

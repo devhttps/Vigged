@@ -73,11 +73,6 @@ if (!$user) {
 if ($user) {
     // Verificar se usuário está ativo
     $status = $user['status'] ?? '';
-    if ($status === 'pendente') {
-        $_SESSION['login_errors'] = ['Sua conta está aguardando aprovação do administrador.'];
-        header('Location: login.php');
-        exit;
-    }
     
     if ($status === 'inativo' || $status === 'inativa') {
         $_SESSION['login_errors'] = ['Sua conta está inativa. Entre em contato com o suporte.'];
@@ -122,9 +117,7 @@ if ($user) {
             
             if ($userExists || $companyExists) {
                 $status = ($userExists ? $userExists['status'] : $companyExists['status']);
-                if ($status === 'pendente') {
-                    $_SESSION['login_errors'] = ['Sua conta está aguardando aprovação do administrador.'];
-                } elseif ($status === 'inativo' || $status === 'inativa') {
+                if ($status === 'inativo' || $status === 'inativa') {
                     $_SESSION['login_errors'] = ['Sua conta está inativa. Entre em contato com o suporte.'];
                 } else {
                     $_SESSION['login_errors'] = ['Email ou senha incorretos.'];
