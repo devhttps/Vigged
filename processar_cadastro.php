@@ -6,9 +6,10 @@
 
 require_once 'config/constants.php';
 require_once 'config/database.php';
+require_once 'config/auth.php';
 
-// Iniciar sessão
-session_start();
+// Iniciar sessão segura
+startSecureSession();
 
 // Verificar se é requisição POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -138,11 +139,11 @@ if (!$pdo) {
 try {
     $stmt = $pdo->prepare("
         INSERT INTO users (
-            nome, email, senha, cpf, telefone, data_nascimento,
+            nome, email, senha, tipo, cpf, telefone, data_nascimento,
             tipo_deficiencia, especifique_outra, cid, possui_laudo, laudo_medico_path,
             recursos_acessibilidade, outras_necessidades, status
         ) VALUES (
-            :nome, :email, :senha, :cpf, :telefone, :data_nascimento,
+            :nome, :email, :senha, 'pcd', :cpf, :telefone, :data_nascimento,
             :tipo_deficiencia, :especifique_outra, :cid, :possui_laudo, :laudo_medico_path,
             :recursos_acessibilidade, :outras_necessidades, 'pendente'
         )
@@ -177,12 +178,19 @@ try {
     
 } catch (PDOException $e) {
     error_log("Erro ao cadastrar usuário: " . $e->getMessage());
+    error_log("SQL Error Code: " . $e->getCode());
+    error_log("SQL Error Info: " . print_r($e->errorInfo, true));
     
     // Verificar se é erro de duplicação
-    if ($e->getCode() == 23000) {
+    if ($e->getCode() == 23000 || strpos($e->getMessage(), 'Duplicate') !== false) {
         $_SESSION['cadastro_errors'] = ['Email ou CPF já cadastrado no sistema.'];
     } else {
-        $_SESSION['cadastro_errors'] = ['Erro ao processar cadastro. Tente novamente mais tarde.'];
+        // Em desenvolvimento, mostrar erro detalhado
+        $errorMsg = 'Erro ao processar cadastro. Tente novamente mais tarde.';
+        if (defined('DEBUG') && DEBUG) {
+            $errorMsg .= ' Detalhes: ' . $e->getMessage();
+        }
+        $_SESSION['cadastro_errors'] = [$errorMsg];
     }
     
     $_SESSION['cadastro_data'] = $_POST;

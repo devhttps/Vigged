@@ -38,6 +38,34 @@
             <p class="text-gray-600">Preencha o formulário abaixo com suas informações. Campos marcados com * são obrigatórios.</p>
         </div>
 
+        <?php
+        // Iniciar sessão para exibir erros
+        require_once 'config/auth.php';
+        startSecureSession();
+        
+        // Exibir erros de cadastro
+        if (isset($_SESSION['cadastro_errors']) && !empty($_SESSION['cadastro_errors'])) {
+            echo '<div class="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">';
+            echo '<p class="font-bold mb-2">Erros encontrados:</p>';
+            echo '<ul class="list-disc list-inside">';
+            foreach ($_SESSION['cadastro_errors'] as $error) {
+                echo '<li>' . htmlspecialchars($error) . '</li>';
+            }
+            echo '</ul>';
+            echo '</div>';
+            unset($_SESSION['cadastro_errors']);
+        }
+        
+        // Exibir mensagem de sucesso
+        if (isset($_SESSION['cadastro_success']) && $_SESSION['cadastro_success']) {
+            echo '<div class="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">';
+            echo '<p>' . htmlspecialchars($_SESSION['cadastro_message'] ?? 'Cadastro realizado com sucesso!') . '</p>';
+            echo '</div>';
+            unset($_SESSION['cadastro_success']);
+            unset($_SESSION['cadastro_message']);
+        }
+        ?>
+
         <form action="processar_cadastro.php" method="POST" enctype="multipart/form-data" class="space-y-8">
             <!-- Personal Information Section -->
             <div class="bg-white rounded-lg shadow-sm p-8">

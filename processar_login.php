@@ -44,28 +44,28 @@ if (!empty($errors)) {
 $user = null;
 $finalUserType = null;
 
-// Tentar como Admin primeiro (menos comum)
+// Tentar como Admin primeiro
 $adminUser = validateCredentials($email, $password, USER_TYPE_ADMIN);
 if ($adminUser) {
     $user = $adminUser;
     $finalUserType = USER_TYPE_ADMIN;
 }
 
-// Tentar como PCD se não encontrou admin
-if (!$user) {
-    $pcdUser = validateCredentials($email, $password, USER_TYPE_PCD);
-    if ($pcdUser) {
-        $user = $pcdUser;
-        $finalUserType = USER_TYPE_PCD;
-    }
-}
-
-// Tentar como Empresa se não encontrou
+// Tentar como Empresa se não encontrou admin
 if (!$user) {
     $companyUser = validateCredentials($email, $password, USER_TYPE_COMPANY);
     if ($companyUser) {
         $user = $companyUser;
         $finalUserType = USER_TYPE_COMPANY;
+    }
+}
+
+// Tentar como PCD se não encontrou
+if (!$user) {
+    $pcdUser = validateCredentials($email, $password, USER_TYPE_PCD);
+    if ($pcdUser) {
+        $user = $pcdUser;
+        $finalUserType = USER_TYPE_PCD;
     }
 }
 
@@ -101,8 +101,45 @@ if ($user) {
     }
     exit;
 } else {
-    // Credenciais inválidas
-    $_SESSION['login_errors'] = ['Email ou senha incorretos.'];
+    // Credenciais inválidas - log para debug
+    error_log("Tentativa de login falhou - Email: $email, Tipo tentado: $userType");
+    
+    // Verificar se o email existe no banco (para dar feedback melhor)
+    $pdo = getDBConnection();
+    if ($pdo) {
+        try {
+            // Verificar em users
+            $stmt = $pdo->prepare("SELECT email, tipo, status FROM users WHERE email = ?");
+            $stmt->execute([$email]);
+            $userExists = $stmt->fetch();
+            
+            // Verificar em companies
+            if (!$userExists) {
+                $stmt = $pdo->prepare("SELECT email_corporativo as email, status FROM companies WHERE email_corporativo = ?");
+                $stmt->execute([$email]);
+                $companyExists = $stmt->fetch();
+            }
+            
+            if ($userExists || $companyExists) {
+                $status = ($userExists ? $userExists['status'] : $companyExists['status']);
+                if ($status === 'pendente') {
+                    $_SESSION['login_errors'] = ['Sua conta está aguardando aprovação do administrador.'];
+                } elseif ($status === 'inativo' || $status === 'inativa') {
+                    $_SESSION['login_errors'] = ['Sua conta está inativa. Entre em contato com o suporte.'];
+                } else {
+                    $_SESSION['login_errors'] = ['Email ou senha incorretos.'];
+                }
+            } else {
+                $_SESSION['login_errors'] = ['Email ou senha incorretos.'];
+            }
+        } catch (PDOException $e) {
+            error_log("Erro ao verificar email no login: " . $e->getMessage());
+            $_SESSION['login_errors'] = ['Email ou senha incorretos.'];
+        }
+    } else {
+        $_SESSION['login_errors'] = ['Erro de conexão. Tente novamente mais tarde.'];
+    }
+    
     header('Location: login.php');
     exit;
 }

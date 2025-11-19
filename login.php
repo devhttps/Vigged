@@ -1,5 +1,7 @@
 <?php
-session_start();
+// Iniciar sessão para exibir mensagens
+require_once 'config/auth.php';
+startSecureSession();
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
