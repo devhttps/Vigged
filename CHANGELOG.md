@@ -1,5 +1,49 @@
 # Changelog - Vigged
 
+## [1.1.0] - Melhorias e Consolidação
+
+### ✅ Melhorias Implementadas
+
+#### Consolidação de Código
+- **includes/functions.php** criado com funções utilitárias centralizadas
+  - sanitizeInput(), validateEmail(), validateCPF(), validateCNPJ()
+  - formatCPF(), formatCNPJ(), formatPhone()
+  - Redução de duplicação de código
+  - Manutenção facilitada
+
+#### Backend de Perfil PCD Completo
+- **processar_perfil_pcd.php** completamente reescrito
+  - Alteração de senha opcional com validação completa
+  - Verificação de duplicação de email e CPF
+  - Remoção automática de arquivos antigos ao fazer upload
+  - Query dinâmica otimizada
+  - Validações aprimoradas
+
+#### Formulários de Cadastro
+- Campos de senha adicionados em `cadastro.php` e `cadastro-empresa.php`
+- Validação client-side e server-side de senhas
+- Remoção de senhas temporárias automáticas
+- Usuários agora definem sua própria senha no cadastro
+
+#### Integração de Cadastro
+- Formulário simplificado de cadastro integrado em `login.php`
+- Tabs para alternar entre login e cadastro
+- Redirecionamento inteligente baseado em tipo de usuário
+
+#### Correções de Bugs
+- Corrigido uso incorreto de `user_id` vs `id` em:
+  - `processar_perfil_pcd.php`
+  - `api/dados_pcd.php`
+- Removida duplicação de código em múltiplos arquivos
+
+### 📝 Notas
+
+- Funções utilitárias agora centralizadas em `includes/functions.php`
+- Todos os arquivos de processamento devem usar `includes/functions.php`
+- Backend de perfil PCD agora suporta alteração de senha completa
+
+---
+
 ## [1.0.0] - Backend Completo
 
 ### ✅ Implementado
@@ -14,6 +58,7 @@
 - Recuperação de senha
 - Painel administrativo
 - Estatísticas e relatórios
+- Instalador web automatizado
 
 #### Segurança
 - Prepared statements em todas as queries
@@ -35,6 +80,7 @@
 - **aaPanel**: Requer configuração de banco de dados personalizada
 - **.htaccess**: Incluído com configurações de segurança
 - **Uploads**: Diretórios devem ter permissão de escrita
+- **Instalador Web**: Disponível em `/install` para instalação automatizada
 
 ### 🔒 Segurança
 
