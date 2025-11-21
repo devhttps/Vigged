@@ -67,6 +67,122 @@ $copyrightClass = $footerStyle === 'dark' ? 'text-gray-400' : 'text-purple-200';
         </div>
     </div>
 </footer>
+
+<script>
+// Sistema de Notificações
+let notificationsPanelOpen = false;
+
+function toggleNotifications() {
+    const panel = document.getElementById('notificationsPanel');
+    if (panel) {
+        notificationsPanelOpen = !notificationsPanelOpen;
+        if (notificationsPanelOpen) {
+            panel.classList.remove('hidden');
+            loadNotifications();
+        } else {
+            panel.classList.add('hidden');
+        }
+    }
+}
+
+async function loadNotifications() {
+    try {
+        const response = await fetch('api/notificacoes.php?action=listar&limit=10');
+        const result = await response.json();
+        
+        if (result.success) {
+            displayNotifications(result.data);
+            updateNotificationBadge(result.nao_lidas);
+        }
+    } catch (error) {
+        console.error('Erro ao carregar notificações:', error);
+    }
+}
+
+function displayNotifications(notificacoes) {
+    const list = document.getElementById('notificationsList');
+    
+    if (notificacoes.length === 0) {
+        list.innerHTML = '<p class="p-4 text-gray-500 text-center">Nenhuma notificação</p>';
+        return;
+    }
+    
+    list.innerHTML = notificacoes.map(notif => {
+        const date = new Date(notif.created_at);
+        const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const unreadClass = notif.lida ? '' : 'bg-purple-50';
+        
+        return `
+            <div class="p-4 hover:bg-gray-50 transition ${unreadClass}">
+                <div class="flex justify-between items-start">
+                    <div class="flex-1">
+                        <h4 class="font-semibold text-gray-900 text-sm">${notif.titulo}</h4>
+                        <p class="text-gray-600 text-sm mt-1">${notif.mensagem}</p>
+                        <p class="text-gray-400 text-xs mt-2">${dateStr}</p>
+                    </div>
+                    ${!notif.lida ? '<span class="w-2 h-2 bg-purple-600 rounded-full mt-1"></span>' : ''}
+                </div>
+                ${notif.link ? `<a href="${notif.link}" onclick="markNotificationRead(${notif.id})" class="text-purple-600 text-sm mt-2 inline-block">Ver detalhes →</a>` : ''}
+            </div>
+        `;
+    }).join('');
+}
+
+function updateNotificationBadge(count) {
+    const badge = document.getElementById('notificationBadge');
+    if (badge) {
+        if (count > 0) {
+            badge.classList.remove('hidden');
+            badge.textContent = count > 99 ? '99+' : count;
+        } else {
+            badge.classList.add('hidden');
+        }
+    }
+}
+
+async function markNotificationRead(notificationId) {
+    try {
+        const formData = new FormData();
+        formData.append('action', 'marcar_lida');
+        formData.append('notification_id', notificationId);
+        
+        await fetch('api/notificacoes.php', {
+            method: 'POST',
+            body: formData
+        });
+        
+        loadNotifications();
+    } catch (error) {
+        console.error('Erro ao marcar notificação como lida:', error);
+    }
+}
+
+async function markAllNotificationsRead() {
+    try {
+        await fetch('api/notificacoes.php?action=marcar_todas_lidas', { method: 'POST' });
+        loadNotifications();
+    } catch (error) {
+        console.error('Erro ao marcar todas como lidas:', error);
+    }
+}
+
+// Carregar contador de notificações ao carregar a página
+document.addEventListener('DOMContentLoaded', function() {
+    loadNotifications();
+    // Atualizar a cada 30 segundos
+    setInterval(loadNotifications, 30000);
+    
+    // Fechar painel ao clicar fora
+    document.addEventListener('click', function(e) {
+        const panel = document.getElementById('notificationsPanel');
+        const button = e.target.closest('button[onclick="toggleNotifications()"]');
+        if (panel && !panel.contains(e.target) && !button && notificationsPanelOpen) {
+            toggleNotifications();
+        }
+    });
+});
+</script>
+
 </body>
 </html>
 

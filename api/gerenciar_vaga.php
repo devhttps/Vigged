@@ -4,9 +4,9 @@
  * Vigged - Plataforma de Inclusão e Oportunidades
  */
 
-require_once '../config/constants.php';
-require_once '../config/database.php';
-require_once '../config/auth.php';
+require_once __DIR__ . '/../config/constants.php';
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../config/auth.php';
 
 startSecureSession();
 requireAuth(USER_TYPE_COMPANY);
@@ -14,7 +14,7 @@ requireAuth(USER_TYPE_COMPANY);
 header('Content-Type: application/json');
 
 $currentUser = getCurrentUser();
-$company_id = $currentUser['user_id'] ?? null;
+$company_id = $currentUser['id'] ?? null;
 
 if (!$company_id) {
     http_response_code(401);

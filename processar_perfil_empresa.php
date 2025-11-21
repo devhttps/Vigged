@@ -21,7 +21,7 @@ function sanitizeInput($data) {
 }
 
 $currentUser = getCurrentUser();
-$company_id = $currentUser['user_id'] ?? null;
+$company_id = $currentUser['id'] ?? null;
 
 if (!$company_id) {
     $_SESSION['perfil_errors'] = ['Empresa não autenticada.'];

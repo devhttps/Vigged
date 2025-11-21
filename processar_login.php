@@ -7,6 +7,7 @@
 require_once 'config/constants.php';
 require_once 'config/database.php';
 require_once 'config/auth.php';
+require_once 'includes/csrf.php';
 
 // Iniciar sessão
 startSecureSession();
@@ -16,6 +17,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: login.php');
     exit;
 }
+
+// Validar token CSRF
+requireCSRFToken('login.php');
 
 // Coletar dados do formulário
 $email = trim($_POST['email'] ?? '');

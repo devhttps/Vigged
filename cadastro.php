@@ -67,6 +67,11 @@
         ?>
 
         <form action="processar_cadastro.php" method="POST" enctype="multipart/form-data" class="space-y-8">
+            <?php
+            // Adicionar token CSRF
+            require_once 'includes/csrf.php';
+            echo csrfField();
+            ?>
             <!-- Personal Information Section -->
             <div class="bg-white rounded-lg shadow-sm p-8">
                 <h2 class="text-2xl font-bold text-purple-600 mb-6">Informações Pessoais</h2>

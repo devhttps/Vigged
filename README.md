@@ -13,61 +13,130 @@ Promover inclusão real no mercado de trabalho, conectando talentos PCD com empr
 ## ✨ Funcionalidades
 
 ### Para Candidatos PCD
-- Busca de vagas com filtros acessíveis
-- Cadastro completo de perfil profissional
-- Informações sobre deficiência, CID e laudos médicos
-- Aplicação para vagas de forma simplificada
-- Acompanhamento de candidaturas
-- Perfil profissional completo
+- ✅ Busca de vagas com filtros acessíveis (integrado com API)
+- ✅ Cadastro completo de perfil profissional
+- ✅ Informações sobre deficiência, CID e laudos médicos
+- ✅ Aplicação para vagas de forma simplificada
+- ✅ Acompanhamento de candidaturas
+- ✅ Perfil profissional completo com edição:
+  - Foto de perfil (com redimensionamento automático)
+  - Informações pessoais (nome, email, telefone, endereço)
+  - Sobre, habilidades, formação acadêmica
+  - Experiências profissionais
+  - Upload de currículo
+  - Alteração de senha
 
 ### Para Empresas
-- Cadastro e gestão de perfil empresarial
-- Publicação de vagas inclusivas
-- Sistema de planos (Gratuito, Essencial, Profissional, Enterprise)
-- Gestão de candidatos e processos seletivos
-- Recursos de acessibilidade da empresa
-- Estatísticas e relatórios
+- ✅ Cadastro e gestão de perfil empresarial (integrado com API)
+- ✅ Publicação de vagas inclusivas (com requisitos e detalhes)
+- ✅ Sistema de planos (Gratuito, Essencial, Profissional, Enterprise)
+- ✅ Gestão de candidatos e processos seletivos
+  - Visualização de candidaturas por vaga
+  - Aprovação/rejeição de candidatos
+  - Gerenciamento de status de candidaturas
+- ✅ Recursos de acessibilidade da empresa
+- ✅ Estatísticas e relatórios (dashboard integrado)
+- ✅ Gerenciamento completo de vagas (criar, editar, pausar, ativar, encerrar)
 
 ### Para Administradores
-- Gestão completa de usuários e empresas
-- Moderação de conteúdo
-- Validação de documentos e laudos
-- Análise e relatórios da plataforma
-- Dashboard com métricas importantes
+- ✅ Gestão completa de usuários e empresas (integrado com APIs)
+  - Listagem com filtros e paginação
+  - Atualização de status (ativo/inativo/pendente)
+  - Visualização de detalhes
+- ✅ Moderação de conteúdo
+- ✅ Validação de documentos e laudos
+- ✅ Análise e relatórios da plataforma
+- ✅ Dashboard com métricas importantes em tempo real:
+  - Total de usuários PCD
+  - Total de empresas cadastradas
+  - Total de vagas publicadas
+  - Total de candidaturas
+  - Registros recentes
 
 ## 🛠️ Tecnologias
 
 - **Backend**: PHP (server-side rendering) ✅ Completo
-- **Frontend**: HTML5, Tailwind CSS, JavaScript
+- **Frontend**: HTML5, Tailwind CSS, JavaScript (Vanilla) ✅ Integrado
 - **Banco de Dados**: MySQL/MariaDB ✅ Implementado
-- **APIs**: REST APIs com JSON ✅ 11 endpoints
-- **Segurança**: PDO, Prepared Statements, Hash de Senhas ✅
+- **APIs**: REST APIs com JSON ✅ 11 endpoints funcionais
+- **Segurança**: PDO, Prepared Statements, Hash de Senhas, CSRF Protection ✅
+- **Cliente API**: JavaScript modular (`assets/js/api.js`) ✅ Completo
 - **Futuro**: Possível migração para Next.js/React
 
 ## 📁 Estrutura do Projeto
 
 ```
 Vigged/
-├── includes/          # Componentes reutilizáveis (header, footer, nav)
-├── assets/           # Recursos estáticos (CSS, JS, imagens)
-├── config/           # Arquivos de configuração (DB, constantes)
+├── includes/          # Componentes reutilizáveis (head.php, nav.php, footer.php)
+│   ├── functions.php  # Funções utilitárias centralizadas
+│   └── image-utils.php # Utilitários de processamento de imagens
+├── assets/           # Recursos estáticos
+│   ├── js/
+│   │   ├── api.js     # Cliente JavaScript para todas as APIs REST
+│   │   ├── masks.js   # Máscaras de input (CPF, CNPJ, telefone)
+│   │   └── utils.js   # Utilitários JavaScript
+│   └── css/          # Estilos customizados
+├── api/              # Endpoints REST (11 APIs)
+│   ├── buscar_vagas.php
+│   ├── dados_pcd.php
+│   ├── dados_empresa.php
+│   ├── admin_usuarios.php
+│   ├── admin_empresas.php
+│   └── ... (outros endpoints)
+├── config/           # Arquivos de configuração
+│   ├── database.php  # Conexão com banco de dados
+│   ├── auth.php      # Sistema de autenticação
+│   ├── constants.php # Constantes do sistema
+│   └── database.sql  # Script de criação do banco
+├── uploads/          # Arquivos enviados pelos usuários
+│   ├── laudos/       # Laudos médicos
+│   ├── documentos/   # Documentos empresariais
+│   ├── logos/        # Logos de empresas
+│   └── curriculos/   # Currículos dos candidatos
+├── install/          # Instalador web automático
 ├── memory-bank/      # Documentação completa do projeto
 ├── *.php            # Páginas principais da aplicação
 └── package.json     # Dependências (possível migração futura)
 ```
 
+## 🔌 Arquitetura e Integração
+
+### Backend (PHP)
+- **8 Processadores**: `processar_cadastro.php`, `processar_cadastro_empresa.php`, `processar_login.php`, `processar_vaga.php`, `processar_candidatura.php`, `processar_perfil_pcd.php`, `processar_perfil_empresa.php`, `processar_recuperar_senha.php`
+- **11 APIs REST**: Endpoints JSON para todas as operações principais
+- **Autenticação**: Sistema completo com RBAC (Role-Based Access Control)
+- **Validação**: Server-side validation em todos os formulários
+
+### Frontend (JavaScript)
+- **Cliente API Unificado**: `assets/js/api.js` com funções para todas as APIs
+- **Integração Completa**: Todas as páginas principais conectadas ao backend
+- **Componentes Reutilizáveis**: `includes/head.php`, `includes/nav.php`, `includes/footer.php`
+- **Validação Client-side**: Máscaras de input e validação de formulários
+
+### Fluxo de Dados
+1. **Usuário interage** com formulário/página
+2. **JavaScript** captura evento e valida client-side
+3. **API REST** recebe requisição (via `api.js`)
+4. **Backend PHP** valida, processa e retorna JSON
+5. **Frontend** atualiza interface com resposta
+
 ## 🚀 Status do Projeto
 
-**Fase Atual**: Backend Completo - Pronto para Produção
+**Fase Atual**: Sistema Completo - Pronto para Produção ✅
 - ✅ Interface visual completa (13 páginas)
 - ✅ Estrutura de pastas organizada
 - ✅ Documentação completa no Memory Bank
-- ✅ Backend 100% implementado (8 processadores + 11 APIs)
+- ✅ Backend 100% implementado (8 processadores + 11 APIs REST)
 - ✅ Banco de dados estruturado e documentado
 - ✅ Sistema de autenticação completo com RBAC
 - ✅ Sistema de vagas e candidaturas funcional
-- ✅ Painel administrativo completo
-- ⚠️ Integração frontend com APIs (backend pronto)
+- ✅ Painel administrativo completo e integrado
+- ✅ Integração frontend com APIs completa
+  - ✅ Perfil PCD (`perfil-pcd.php`) conectado ao backend
+  - ✅ Perfil Empresa (`perfil-empresa.php`) conectado ao backend
+  - ✅ Painel Admin (`admin.php`) conectado às APIs administrativas
+  - ✅ Busca de vagas (`vagas.php`) integrada com API de busca
+  - ✅ Cliente JavaScript completo (`assets/js/api.js`) para todas as APIs
 
 ## 📦 Instalação
 
@@ -388,6 +457,98 @@ O arquivo `.htaccess` já está incluído no projeto. No aaPanel, certifique-se 
 
 ---
 
+## 🔄 Migrações do Banco de Dados
+
+### O que são Migrações?
+
+Migrações são scripts que atualizam a estrutura do banco de dados, adicionando novas colunas, tabelas ou funcionalidades sem perder dados existentes.
+
+### Quando Executar Migrações?
+
+Execute migrações quando:
+- ✅ Você atualizou o código do projeto e precisa atualizar o banco de dados
+- ✅ Você recebeu erros como "Unknown column 'feedback'" ou "Table doesn't exist"
+- ✅ Novas funcionalidades foram adicionadas ao sistema
+
+### Migração: Campos de Feedback e Avaliação
+
+Esta migração adiciona campos necessários para o sistema de gerenciamento de candidaturas:
+
+**Campos adicionados na tabela `applications`:**
+- `feedback` - Texto para feedback da empresa ao candidato
+- `avaliacao` - Avaliação de 1 a 5 estrelas
+- `avaliado_em` - Data/hora da avaliação
+
+**Tabelas criadas:**
+- `notifications` - Sistema de notificações para usuários
+- `application_status_history` - Histórico de mudanças de status de candidaturas
+
+### Como Executar a Migração
+
+**Opção 1: Via Navegador (Recomendado)**
+
+1. Acesse no navegador:
+   ```
+   http://localhost/vigged/migrate_candidaturas.php
+   ```
+
+2. O script irá:
+   - ✅ Verificar se as colunas já existem
+   - ✅ Adicionar colunas necessárias se não existirem
+   - ✅ Criar tabelas necessárias se não existirem
+   - ✅ Exibir mensagens de sucesso ou erro
+
+3. **IMPORTANTE:** Após executar com sucesso, **delete o arquivo** `migrate_candidaturas.php` por segurança!
+
+**Opção 2: Via Linha de Comando**
+
+```bash
+# Windows (XAMPP)
+C:\xampp\php\php.exe migrate_candidaturas.php
+
+# Linux/Mac
+php migrate_candidaturas.php
+```
+
+### Verificar se a Migração Foi Executada
+
+Você pode verificar se a migração foi executada verificando se as colunas existem:
+
+**Via phpMyAdmin:**
+1. Acesse `http://localhost/phpmyadmin`
+2. Selecione o banco `vigged_db`
+3. Clique na tabela `applications`
+4. Verifique se as colunas `feedback`, `avaliacao` e `avaliado_em` existem
+
+**Via SQL:**
+```sql
+SHOW COLUMNS FROM applications LIKE 'feedback';
+SHOW COLUMNS FROM applications LIKE 'avaliacao';
+SHOW TABLES LIKE 'notifications';
+```
+
+### Troubleshooting de Migrações
+
+**Erro: "Column already exists"**
+- ✅ Isso é normal! Significa que a migração já foi executada
+- Você pode ignorar este erro ou deletar o arquivo de migração
+
+**Erro: "Access denied"**
+- Verifique as credenciais em `config/database.php`
+- Verifique se o usuário MySQL tem permissão ALTER TABLE
+
+**Erro: "Table doesn't exist"**
+- Execute primeiro o `config/database.sql` para criar a estrutura base
+- Depois execute as migrações
+
+### Segurança
+
+⚠️ **IMPORTANTE:** Sempre delete os arquivos de migração após executá-los com sucesso!
+
+Os arquivos de migração podem ser usados para modificar o banco de dados e devem ser removidos após uso por segurança.
+
+---
+
 ## ✅ Verificação Pós-Instalação
 
 ### Teste de Conexão com Banco
@@ -505,7 +666,9 @@ define('EMAIL_FROM', 'noreply@vigged.com.br');
 - ✅ Sessões: Cookies HttpOnly, regeneração de ID
 - ✅ Uploads: Validação de tipo e tamanho
 - ✅ RBAC: Controle de acesso baseado em papéis
+- ✅ CSRF: Proteção contra Cross-Site Request Forgery (tokens em todos os formulários)
 - ✅ .htaccess: Headers de segurança configurados
+- ✅ Validação server-side: Todas as operações críticas validadas no backend
 
 ### Conformidade Legal
 - LGPD compliance (Lei Geral de Proteção de Dados)

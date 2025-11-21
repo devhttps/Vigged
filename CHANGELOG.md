@@ -1,5 +1,79 @@
 # Changelog - Vigged
 
+## [1.2.0] - Correções e Melhorias de UX
+
+### ✅ Correções Implementadas
+
+#### Campo "Requisitos" ao Publicar Vagas
+- **Problema:** Campo "Requisitos" não estava sendo salvo ao publicar vagas
+- **Solução:** 
+  - Criada função `sanitizeTextarea()` para preservar quebras de linha
+  - Campo agora usa sanitização apropriada para textarea
+  - JavaScript melhorado para garantir envio do campo
+  - Logs de debug adicionados
+
+#### Erro ao Aprovar Candidatos
+- **Problema:** Erro SQL "Unknown column 'feedback'" ao aprovar candidatos
+- **Causa:** Migração não havia sido executada, colunas faltando no banco
+- **Solução:**
+  - Script de migração automatizado criado (`migrate_candidaturas.php`)
+  - Verificação dinâmica de colunas na API
+  - Tratamento de erros melhorado com mais detalhes
+  - Documentação completa sobre migrações
+
+### ✨ Novas Funcionalidades
+
+#### Busca Automática de CEP
+- **API de CEP:** `api/buscar_cep.php` criada
+  - Integração com ViaCEP (API pública e gratuita)
+  - Validação de CEP (8 dígitos)
+  - Retorno formatado de dados de endereço
+  
+- **Integração no Perfil PCD:**
+  - Busca automática ao digitar CEP completo
+  - Preenchimento automático de campos (logradouro, bairro, cidade, estado)
+  - Indicador visual de carregamento
+  - Mensagens de sucesso/erro
+  - Debounce de 500ms para otimizar requisições
+
+#### Sistema de Migrações
+- Script automatizado para atualizar estrutura do banco
+- Verificação inteligente de colunas existentes
+- Funciona via navegador ou linha de comando
+- Documentação completa no README
+
+### 📝 Documentação
+
+- **README.md:** Seção completa sobre migrações adicionada
+  - Quando executar migrações
+  - Como executar (navegador ou CLI)
+  - Troubleshooting de problemas comuns
+  - Avisos de segurança
+
+### 🔧 Melhorias Técnicas
+
+- Função `sanitizeTextarea()` para campos de texto longo
+- Verificação dinâmica de colunas no banco antes de usar
+- Tratamento de erros HTTP melhorado no frontend
+- Logs de debug mais detalhados
+
+### 📦 Arquivos Criados
+
+- `migrate_candidaturas.php` - Script de migração automatizado
+- `api/buscar_cep.php` - API para busca de CEP
+- `memory-bank/sessao-hoje.md` - Documentação desta sessão
+
+### 📝 Arquivos Modificados
+
+- `processar_vaga.php` - Função sanitizeTextarea(), tratamento melhorado
+- `perfil-empresa.php` - JavaScript melhorado, tratamento de erros
+- `api/atualizar_status_candidatura.php` - Verificação dinâmica, erros melhorados
+- `assets/js/api.js` - Função buscarCep() adicionada
+- `perfil-pcd.php` - Integração completa de busca de CEP
+- `README.md` - Seção sobre migrações adicionada
+
+---
+
 ## [1.1.0] - Melhorias e Consolidação
 
 ### ✅ Melhorias Implementadas

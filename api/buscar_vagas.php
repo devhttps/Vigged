@@ -42,8 +42,8 @@ try {
     
     // Busca textual
     if (!empty($search)) {
-        $where[] = "(MATCH(j.titulo, j.descricao, j.requisitos) AGAINST(:search IN BOOLEAN MODE) OR j.titulo LIKE :search_like OR j.descricao LIKE :search_like)";
-        $params[':search'] = $search;
+        // Usar LIKE para busca mais flexível (FULLTEXT pode não estar disponível)
+        $where[] = "(j.titulo LIKE :search_like OR j.descricao LIKE :search_like OR j.requisitos LIKE :search_like OR j.localizacao LIKE :search_like)";
         $params[':search_like'] = '%' . $search . '%';
     }
     
@@ -67,12 +67,12 @@ try {
     
     $whereClause = implode(' AND ', $where);
     
-    // Query para contar total
+    // Query para contar total (incluir empresas ativas e pendentes que criaram vagas)
     $countStmt = $pdo->prepare("
         SELECT COUNT(*) as total
         FROM jobs j
         INNER JOIN companies c ON j.company_id = c.id
-        WHERE $whereClause AND c.status = 'ativa'
+        WHERE $whereClause AND c.status IN ('ativa', 'pendente')
     ");
     
     foreach ($params as $key => $value) {
@@ -82,7 +82,7 @@ try {
     $countStmt->execute();
     $total = $countStmt->fetch()['total'];
     
-    // Query para buscar vagas
+    // Query para buscar vagas (incluir empresas ativas e pendentes)
     $query = "
         SELECT 
             j.id,
@@ -96,11 +96,11 @@ try {
             j.visualizacoes,
             j.created_at,
             c.id as company_id,
-            c.nome_fantasia as empresa_nome,
+            COALESCE(c.nome_fantasia, c.razao_social, 'Empresa') as empresa_nome,
             c.logo_path as empresa_logo
         FROM jobs j
         INNER JOIN companies c ON j.company_id = c.id
-        WHERE $whereClause AND c.status = 'ativa'
+        WHERE $whereClause AND c.status IN ('ativa', 'pendente')
         ORDER BY j.destacada DESC, j.created_at DESC
         LIMIT :limit OFFSET :offset
     ";

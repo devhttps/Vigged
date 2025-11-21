@@ -1,35 +1,17 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Suporte - Vigged</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-    </style>
-</head>
-<body class="bg-gray-50">
-    <!-- Navigation -->
-    <nav class="bg-purple-600 text-white h-16">
-        <div class="max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
-            <a href="index.php" class="text-2xl font-bold">Vigged</a>
-            <div class="hidden md:flex space-x-6">
-                <a href="index.php" class="hover:text-purple-200 transition">Início</a>
-                <a href="vagas.php" class="hover:text-purple-200 transition">Vagas</a>
-                <a href="empresas.php" class="hover:text-purple-200 transition">Empresas</a>
-                <a href="sobre-nos.php" class="hover:text-purple-200 transition">Sobre nós</a>
-                <a href="suporte.php" class="hover:text-purple-200 transition">Contato</a>
-            </div>
-            <div class="flex space-x-3">
-                <a href="login.php" class="px-4 py-2 border border-white rounded-lg hover:bg-white hover:text-purple-600 transition">Login</a>
-                <a href="pre-cadastro.php" class="px-4 py-2 bg-white text-purple-600 rounded-lg hover:bg-purple-50 transition">Cadastrar-se</a>
-            </div>
-        </div>
-    </nav>
+<?php
+// Configurar título da página
+$title = 'Suporte';
+
+// Iniciar sessão para manter autenticação
+require_once 'config/auth.php';
+startSecureSession();
+
+// Incluir head
+include 'includes/head.php';
+
+// Incluir navegação (será determinada automaticamente pela autenticação)
+include 'includes/nav.php';
+?>
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -198,5 +180,7 @@
             }, 5000);
         });
     </script>
-</body>
-</html>
+<?php
+// Incluir footer padrão
+include 'includes/footer.php';
+?>
