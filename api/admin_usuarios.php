@@ -98,6 +98,77 @@ try {
             echo json_encode(['success' => true, 'message' => 'Status atualizado']);
             break;
             
+        case 'create':
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                http_response_code(405);
+                echo json_encode(['error' => 'Método não permitido']);
+                exit;
+            }
+            
+            require_once '../includes/functions.php';
+            
+            $nome = sanitizeInput($_POST['nome'] ?? '');
+            $email = sanitizeInput($_POST['email'] ?? '');
+            $cpf = sanitizeInput($_POST['cpf'] ?? '');
+            $telefone = sanitizeInput($_POST['telefone'] ?? '');
+            $tipo_deficiencia = sanitizeInput($_POST['tipo_deficiencia'] ?? '');
+            $status = sanitizeInput($_POST['status'] ?? 'ativo');
+            $senha = $_POST['senha'] ?? '';
+            
+            // Validações
+            if (empty($nome) || empty($email) || empty($cpf) || empty($senha)) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Campos obrigatórios: nome, email, CPF e senha']);
+                exit;
+            }
+            
+            if (!validateEmail($email)) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Email inválido']);
+                exit;
+            }
+            
+            if (!validateCPF($cpf)) {
+                http_response_code(400);
+                echo json_encode(['error' => 'CPF inválido']);
+                exit;
+            }
+            
+            if (strlen($senha) < 6) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Senha deve ter no mínimo 6 caracteres']);
+                exit;
+            }
+            
+            // Verificar se email ou CPF já existe
+            $checkStmt = $pdo->prepare("SELECT id FROM users WHERE email = :email OR cpf = :cpf");
+            $checkStmt->execute([':email' => $email, ':cpf' => $cpf]);
+            if ($checkStmt->fetch()) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Email ou CPF já cadastrado']);
+                exit;
+            }
+            
+            // Criar usuário
+            $senhaHash = password_hash($senha, PASSWORD_DEFAULT);
+            $stmt = $pdo->prepare("
+                INSERT INTO users (nome, email, cpf, telefone, tipo_deficiencia, senha, tipo, status, created_at)
+                VALUES (:nome, :email, :cpf, :telefone, :tipo_deficiencia, :senha, 'pcd', :status, NOW())
+            ");
+            
+            $stmt->execute([
+                ':nome' => $nome,
+                ':email' => $email,
+                ':cpf' => $cpf,
+                ':telefone' => $telefone,
+                ':tipo_deficiencia' => $tipo_deficiencia,
+                ':senha' => $senhaHash,
+                ':status' => $status
+            ]);
+            
+            echo json_encode(['success' => true, 'message' => 'Usuário criado com sucesso', 'id' => $pdo->lastInsertId()]);
+            break;
+            
         default:
             http_response_code(400);
             echo json_encode(['error' => 'Ação inválida']);

@@ -4,9 +4,9 @@
  * Vigged - Plataforma de Inclusão e Oportunidades
  */
 
-require_once '../config/constants.php';
-require_once '../config/database.php';
-require_once '../config/auth.php';
+require_once __DIR__ . '/../config/constants.php';
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../config/auth.php';
 
 startSecureSession();
 requireAuth(USER_TYPE_COMPANY);
@@ -14,7 +14,7 @@ requireAuth(USER_TYPE_COMPANY);
 header('Content-Type: application/json');
 
 $currentUser = getCurrentUser();
-$company_id = $currentUser['user_id'] ?? null;
+$company_id = $currentUser['id'] ?? null;
 
 if (!$company_id) {
     http_response_code(401);
@@ -61,6 +61,22 @@ try {
     
     $whereClause = implode(' AND ', $where);
     
+    // Aplicar filtros adicionais
+    $nome = $_GET['nome'] ?? '';
+    $email = $_GET['email'] ?? '';
+    
+    if (!empty($nome)) {
+        $where[] = "u.nome LIKE :nome";
+        $params[':nome'] = "%$nome%";
+    }
+    
+    if (!empty($email)) {
+        $where[] = "u.email LIKE :email";
+        $params[':email'] = "%$email%";
+    }
+    
+    $whereClause = implode(' AND ', $where);
+    
     $stmt = $pdo->prepare("
         SELECT 
             a.*,
@@ -68,9 +84,12 @@ try {
             u.email as candidato_email,
             u.telefone as candidato_telefone,
             u.tipo_deficiencia,
-            u.cid
+            u.cid,
+            u.foto_perfil,
+            j.titulo as vaga_titulo
         FROM applications a
         INNER JOIN users u ON a.user_id = u.id
+        INNER JOIN jobs j ON a.job_id = j.id
         WHERE $whereClause
         ORDER BY a.created_at DESC
     ");

@@ -108,6 +108,135 @@ try {
             echo json_encode(['success' => true, 'message' => 'Status atualizado']);
             break;
             
+        case 'create':
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                http_response_code(405);
+                echo json_encode(['success' => false, 'error' => 'Método não permitido']);
+                exit;
+            }
+            
+            require_once '../includes/functions.php';
+            
+            // Receber dados do POST
+            $razao_social = trim($_POST['razao_social'] ?? '');
+            $nome_fantasia = trim($_POST['nome_fantasia'] ?? '');
+            $cnpj = trim($_POST['cnpj'] ?? '');
+            $email_corporativo = trim($_POST['email_corporativo'] ?? '');
+            $telefone = trim($_POST['telefone'] ?? '');
+            $setor = trim($_POST['setor'] ?? '');
+            $status = trim($_POST['status'] ?? 'ativa');
+            $senha = $_POST['senha'] ?? '';
+            
+            // Validações básicas
+            if (empty($razao_social)) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'error' => 'Razão social é obrigatória']);
+                exit;
+            }
+            
+            if (empty($cnpj)) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'error' => 'CNPJ é obrigatório']);
+                exit;
+            }
+            
+            if (empty($email_corporativo)) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'error' => 'Email corporativo é obrigatório']);
+                exit;
+            }
+            
+            if (empty($senha)) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'error' => 'Senha é obrigatória']);
+                exit;
+            }
+            
+            // Sanitizar dados
+            $razao_social = sanitizeInput($razao_social);
+            $nome_fantasia = sanitizeInput($nome_fantasia);
+            $cnpj_limpo = preg_replace('/[^0-9]/', '', $cnpj);
+            $email_corporativo = sanitizeInput($email_corporativo);
+            $telefone = sanitizeInput($telefone);
+            $setor = sanitizeInput($setor);
+            $status = sanitizeInput($status);
+            
+            // Validações de formato
+            if (!validateEmail($email_corporativo)) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'error' => 'Email inválido']);
+                exit;
+            }
+            
+            if (!validateCNPJ($cnpj_limpo)) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'error' => 'CNPJ inválido. Deve conter 14 dígitos']);
+                exit;
+            }
+            
+            if (strlen($senha) < 6) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'error' => 'Senha deve ter no mínimo 6 caracteres']);
+                exit;
+            }
+            
+            // Verificar se email ou CNPJ já existe
+            try {
+                $checkStmt = $pdo->prepare("SELECT id FROM companies WHERE email_corporativo = :email OR cnpj = :cnpj");
+                $checkStmt->execute([':email' => $email_corporativo, ':cnpj' => $cnpj_limpo]);
+                if ($checkStmt->fetch()) {
+                    http_response_code(400);
+                    echo json_encode(['success' => false, 'error' => 'Email ou CNPJ já cadastrado']);
+                    exit;
+                }
+            } catch (PDOException $e) {
+                error_log("Erro ao verificar duplicatas: " . $e->getMessage());
+                http_response_code(500);
+                echo json_encode(['success' => false, 'error' => 'Erro ao verificar dados existentes']);
+                exit;
+            }
+            
+            // Criar empresa
+            try {
+                $senhaHash = password_hash($senha, PASSWORD_DEFAULT);
+                $stmt = $pdo->prepare("
+                    INSERT INTO companies (razao_social, nome_fantasia, cnpj, email_corporativo, telefone_empresa, setor, senha, status, created_at)
+                    VALUES (:razao_social, :nome_fantasia, :cnpj, :email_corporativo, :telefone_empresa, :setor, :senha, :status, NOW())
+                ");
+                
+                $result = $stmt->execute([
+                    ':razao_social' => $razao_social,
+                    ':nome_fantasia' => $nome_fantasia ?: $razao_social,
+                    ':cnpj' => $cnpj_limpo,
+                    ':email_corporativo' => $email_corporativo,
+                    ':telefone_empresa' => $telefone,
+                    ':setor' => $setor,
+                    ':senha' => $senhaHash,
+                    ':status' => $status
+                ]);
+                
+                if ($result) {
+                    echo json_encode([
+                        'success' => true, 
+                        'message' => 'Empresa criada com sucesso', 
+                        'id' => $pdo->lastInsertId()
+                    ], JSON_UNESCAPED_UNICODE);
+                } else {
+                    http_response_code(500);
+                    echo json_encode(['success' => false, 'error' => 'Erro ao inserir empresa no banco de dados']);
+                }
+            } catch (PDOException $e) {
+                error_log("Erro ao criar empresa: " . $e->getMessage());
+                http_response_code(500);
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Erro ao criar empresa',
+                    'details' => $e->getMessage() // Mostrar detalhes em desenvolvimento
+                ]);
+                exit;
+            }
+            break;
+            
         default:
             http_response_code(400);
             echo json_encode(['error' => 'Ação inválida']);
@@ -116,7 +245,20 @@ try {
 } catch (PDOException $e) {
     error_log("Erro na API admin empresas: " . $e->getMessage());
     http_response_code(500);
-    echo json_encode(['error' => 'Erro ao processar requisição']);
+    echo json_encode([
+        'success' => false,
+        'error' => 'Erro ao processar requisição',
+        'details' => $e->getMessage() // Em desenvolvimento, mostrar detalhes
+    ]);
+    exit;
+} catch (Exception $e) {
+    error_log("Erro na API admin empresas: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'error' => 'Erro ao processar requisição',
+        'details' => $e->getMessage() // Em desenvolvimento, mostrar detalhes
+    ]);
     exit;
 }
 

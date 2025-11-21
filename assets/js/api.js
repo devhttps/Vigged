@@ -53,11 +53,23 @@ async function obterDadosEmpresa() {
 async function obterVagasEmpresa(status = 'ativa') {
     try {
         const response = await fetch(`${API_BASE_URL}/vagas_empresa.php?status=${status}`);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Erro HTTP:', response.status, errorText);
+            return { success: false, error: `Erro ${response.status}: ${errorText.substring(0, 100)}` };
+        }
+        
         const data = await response.json();
+        
+        if (!data.success) {
+            console.error('Erro na resposta da API:', data);
+        }
+        
         return data;
     } catch (error) {
         console.error('Erro ao obter vagas da empresa:', error);
-        return { success: false, error: 'Erro ao carregar vagas' };
+        return { success: false, error: `Erro ao carregar vagas: ${error.message}` };
     }
 }
 
@@ -344,6 +356,73 @@ async function obterEstatisticas(type = 'general') {
 }
 
 /**
+ * Obter configurações do sistema
+ * @returns {Promise} Promise com configurações
+ */
+async function obterConfiguracoes() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/admin_configuracoes.php?action=get`);
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Erro ao obter configurações:', error);
+        return { success: false, error: 'Erro ao carregar configurações' };
+    }
+}
+
+/**
+ * Salvar configurações do sistema
+ * @param {Object} settings Objeto com configurações
+ * @returns {Promise} Promise com resultado
+ */
+async function salvarConfiguracoes(settings) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/admin_configuracoes.php?action=save`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(settings)
+        });
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Erro ao salvar configurações:', error);
+        return { success: false, error: 'Erro ao salvar configurações' };
+    }
+}
+
+/**
+ * Obter informações do sistema
+ * @returns {Promise} Promise com informações do sistema
+ */
+async function obterInfoSistema() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/admin_configuracoes.php?action=system_info`);
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Erro ao obter informações do sistema:', error);
+        return { success: false, error: 'Erro ao carregar informações' };
+    }
+}
+
+/**
+ * Limpar cache e logs
+ * @returns {Promise} Promise com resultado
+ */
+async function limparCache() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/admin_configuracoes.php?action=clear_cache`);
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Erro ao limpar cache:', error);
+        return { success: false, error: 'Erro ao limpar cache' };
+    }
+}
+
+/**
  * Atualizar perfil PCD
  * @param {Object} perfilData Dados do perfil
  * @returns {Promise} Promise com resultado
@@ -473,6 +552,36 @@ async function resetarSenha(token, newPassword, confirmPassword) {
     }
 }
 
+/**
+ * Buscar endereço por CEP
+ * @param {string} cep CEP (apenas números ou com formatação)
+ * @returns {Promise} Promise com dados do endereço
+ */
+async function buscarCep(cep) {
+    // Remover formatação do CEP (apenas números)
+    const cepLimpo = cep.replace(/\D/g, '');
+    
+    if (cepLimpo.length !== 8) {
+        return { success: false, error: 'CEP deve conter 8 dígitos' };
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/buscar_cep.php?cep=${cepLimpo}`);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Erro HTTP:', response.status, errorText);
+            return { success: false, error: `Erro ao buscar CEP: ${response.status}` };
+        }
+        
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Erro ao buscar CEP:', error);
+        return { success: false, error: 'Erro ao buscar CEP. Tente novamente.' };
+    }
+}
+
 // Exportar funções para uso global
 window.ViggedAPI = {
     buscarVagas,
@@ -488,8 +597,15 @@ window.ViggedAPI = {
     obterDetalhesVaga,
     gerenciarVaga,
     obterCandidaturasVaga,
+    buscarCep,
     gerenciarCandidatura,
     obterEstatisticas,
+    
+    // Configurações
+    obterConfiguracoes,
+    salvarConfiguracoes,
+    obterInfoSistema,
+    limparCache,
     atualizarPerfilPCD,
     atualizarPerfilEmpresa,
     solicitarRecuperacaoSenha,

@@ -8,6 +8,8 @@ require_once 'config/constants.php';
 require_once 'config/database.php';
 require_once 'config/auth.php';
 require_once 'includes/functions.php';
+require_once 'includes/csrf.php';
+require_once 'includes/image-utils.php';
 
 startSecureSession();
 requireAuth(USER_TYPE_PCD);
@@ -16,6 +18,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: perfil-pcd.php');
     exit;
 }
+
+// Validar token CSRF
+requireCSRFToken('perfil-pcd.php');
 
 $currentUser = getCurrentUser();
 $user_id = $currentUser['id'] ?? null;
@@ -26,18 +31,55 @@ if (!$user_id) {
     exit;
 }
 
-// Coletar dados
+// Coletar dados básicos
 $nome = sanitizeInput($_POST['nome'] ?? '');
 $email = sanitizeInput($_POST['email'] ?? '');
-$cpf = sanitizeInput($_POST['cpf'] ?? '');
 $telefone = sanitizeInput($_POST['telefone'] ?? '');
-$data_nascimento = sanitizeInput($_POST['data_nascimento'] ?? '');
-$tipo_deficiencia = sanitizeInput($_POST['tipo_deficiencia'] ?? '');
-$especifique_outra = sanitizeInput($_POST['especifique_outra'] ?? '');
-$cid = sanitizeInput($_POST['cid'] ?? '');
-$possui_laudo = isset($_POST['possui_laudo']) && $_POST['possui_laudo'] === 'sim';
-$recursos_acessibilidade = isset($_POST['recursos']) ? $_POST['recursos'] : [];
-$outras_necessidades = sanitizeInput($_POST['outras_necessidades'] ?? '');
+$sobre = sanitizeInput($_POST['sobre'] ?? '');
+
+// Endereço
+$cep = sanitizeInput($_POST['cep'] ?? '');
+$estado = strtoupper(sanitizeInput($_POST['estado'] ?? ''));
+$cidade = sanitizeInput($_POST['cidade'] ?? '');
+$bairro = sanitizeInput($_POST['bairro'] ?? '');
+$logradouro = sanitizeInput($_POST['logradouro'] ?? '');
+$numero = sanitizeInput($_POST['numero'] ?? '');
+$complemento = sanitizeInput($_POST['complemento'] ?? '');
+
+// Habilidades (array)
+$habilidades = isset($_POST['habilidades']) && is_array($_POST['habilidades']) 
+    ? array_filter(array_map('sanitizeInput', $_POST['habilidades'])) 
+    : [];
+
+// Formação acadêmica (array)
+$formacao = [];
+if (isset($_POST['formacao']) && is_array($_POST['formacao'])) {
+    foreach ($_POST['formacao'] as $form) {
+        if (!empty($form['curso']) && !empty($form['instituicao'])) {
+            $formacao[] = [
+                'curso' => sanitizeInput($form['curso'] ?? ''),
+                'instituicao' => sanitizeInput($form['instituicao'] ?? ''),
+                'periodo' => sanitizeInput($form['periodo'] ?? ''),
+                'status' => sanitizeInput($form['status'] ?? '')
+            ];
+        }
+    }
+}
+
+// Experiências (array)
+$experiencias = [];
+if (isset($_POST['experiencias']) && is_array($_POST['experiencias'])) {
+    foreach ($_POST['experiencias'] as $exp) {
+        if (!empty($exp['cargo']) && !empty($exp['empresa'])) {
+            $experiencias[] = [
+                'cargo' => sanitizeInput($exp['cargo'] ?? ''),
+                'empresa' => sanitizeInput($exp['empresa'] ?? ''),
+                'periodo' => sanitizeInput($exp['periodo'] ?? ''),
+                'descricao' => sanitizeInput($exp['descricao'] ?? '')
+            ];
+        }
+    }
+}
 
 // Campos opcionais para alteração de senha
 $senha_atual = $_POST['senha_atual'] ?? '';
@@ -51,16 +93,8 @@ if (empty($nome)) {
     $errors[] = "Nome completo é obrigatório.";
 }
 
-if (!empty($email) && !validateEmail($email)) {
-    $errors[] = "Email inválido.";
-}
-
-if (!empty($cpf) && !validateCPF($cpf)) {
-    $errors[] = "CPF inválido.";
-}
-
-if (empty($tipo_deficiencia)) {
-    $errors[] = "Tipo de deficiência é obrigatório.";
+if (empty($email) || !validateEmail($email)) {
+    $errors[] = "Email válido é obrigatório.";
 }
 
 // Validação de alteração de senha (se fornecida)
@@ -79,41 +113,49 @@ if (!empty($nova_senha) || !empty($senha_atual) || !empty($confirmar_senha)) {
     }
 }
 
-// Processar upload de novo laudo
-$laudo_medico_path = null;
-if ($possui_laudo && isset($_FILES['laudo_medico']) && $_FILES['laudo_medico']['error'] === UPLOAD_ERR_OK) {
-    $file = $_FILES['laudo_medico'];
+// Processar upload de foto de perfil
+$foto_perfil_path = null;
+if (isset($_FILES['foto_perfil']) && $_FILES['foto_perfil']['error'] === UPLOAD_ERR_OK) {
+    $foto_perfil_path = processProfilePhotoUpload($_FILES['foto_perfil'], $user_id);
+    
+    if ($foto_perfil_path === false) {
+        $errors[] = "Erro ao processar foto de perfil. Verifique se o arquivo é uma imagem válida (JPG/PNG) e não excede 5MB.";
+    } else {
+        // Remover foto antiga se existir
+        if (!empty($currentUser['foto_perfil']) && file_exists($currentUser['foto_perfil'])) {
+            @unlink($currentUser['foto_perfil']);
+        }
+    }
+}
+
+// Processar upload de currículo
+$curriculo_path = null;
+if (isset($_FILES['curriculo']) && $_FILES['curriculo']['error'] === UPLOAD_ERR_OK) {
+    $file = $_FILES['curriculo'];
     
     if (!in_array($file['type'], ALLOWED_DOC_TYPES)) {
-        $errors[] = "Tipo de arquivo inválido. Apenas PDF é permitido.";
-    }
-    
-    if ($file['size'] > MAX_LAUDO_SIZE) {
-        $errors[] = "Arquivo muito grande. Tamanho máximo: 5MB.";
-    }
-    
-    if (empty($errors)) {
-        $upload_dir = UPLOADS_PATH . '/laudos/';
+        $errors[] = "Tipo de arquivo inválido. Apenas PDF é permitido para currículo.";
+    } elseif ($file['size'] > MAX_DOCUMENTO_SIZE) {
+        $errors[] = "Arquivo muito grande. Tamanho máximo: 10MB.";
+    } else {
+        $upload_dir = UPLOADS_PATH . '/curriculos/';
         if (!is_dir($upload_dir)) {
             mkdir($upload_dir, 0755, true);
         }
         
         $file_extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-        $file_name = uniqid('laudo_') . '_' . time() . '.' . $file_extension;
+        $file_name = 'curriculo_' . $user_id . '_' . time() . '.' . $file_extension;
         $file_path = $upload_dir . $file_name;
         
         if (move_uploaded_file($file['tmp_name'], $file_path)) {
-            $laudo_medico_path = 'uploads/laudos/' . $file_name;
+            $curriculo_path = 'uploads/curriculos/' . $file_name;
             
-            // Remover laudo antigo se existir
-            if (!empty($currentUser['laudo_medico_path'])) {
-                $old_file = $currentUser['laudo_medico_path'];
-                if (file_exists($old_file) && strpos($old_file, 'uploads/laudos/') === 0) {
-                    @unlink($old_file);
-                }
+            // Remover currículo antigo se existir
+            if (!empty($currentUser['curriculo_path']) && file_exists($currentUser['curriculo_path'])) {
+                @unlink($currentUser['curriculo_path']);
             }
         } else {
-            $errors[] = "Erro ao fazer upload do arquivo.";
+            $errors[] = "Erro ao fazer upload do currículo.";
         }
     }
 }
@@ -130,28 +172,6 @@ if (!empty($email) && $email !== $currentUser['email']) {
             }
         } catch (PDOException $e) {
             error_log("Erro ao verificar email duplicado: " . $e->getMessage());
-        }
-    }
-}
-
-// Converter e limpar CPF
-$cpf_cleaned = !empty($cpf) ? preg_replace('/[^0-9]/', '', $cpf) : null;
-
-// Verificar duplicação de CPF (se alterado)
-if (!empty($cpf_cleaned)) {
-    $current_cpf = preg_replace('/[^0-9]/', '', $currentUser['cpf'] ?? '');
-    if ($cpf_cleaned !== $current_cpf) {
-        $pdo = getDBConnection();
-        if ($pdo) {
-            try {
-                $stmt = $pdo->prepare("SELECT id FROM users WHERE cpf = ? AND id != ?");
-                $stmt->execute([$cpf_cleaned, $user_id]);
-                if ($stmt->fetch()) {
-                    $errors[] = "Este CPF já está em uso por outro usuário.";
-                }
-            } catch (PDOException $e) {
-                error_log("Erro ao verificar CPF duplicado: " . $e->getMessage());
-            }
         }
     }
 }
@@ -184,15 +204,13 @@ if (!empty($errors)) {
     exit;
 }
 
-// Converter dados
-$data_nascimento_formatted = null;
-if (!empty($data_nascimento)) {
-    $date_parts = explode('/', $data_nascimento);
-    if (count($date_parts) === 3) {
-        $data_nascimento_formatted = $date_parts[2] . '-' . $date_parts[1] . '-' . $date_parts[0];
-    }
-}
-$recursos_json = !empty($recursos_acessibilidade) ? json_encode($recursos_acessibilidade, JSON_UNESCAPED_UNICODE) : null;
+// Converter dados para JSON
+$habilidades_json = !empty($habilidades) ? json_encode($habilidades, JSON_UNESCAPED_UNICODE) : null;
+$formacao_json = !empty($formacao) ? json_encode($formacao, JSON_UNESCAPED_UNICODE) : null;
+$experiencias_json = !empty($experiencias) ? json_encode($experiencias, JSON_UNESCAPED_UNICODE) : null;
+
+// Limpar CEP
+$cep_cleaned = !empty($cep) ? preg_replace('/[^0-9-]/', '', $cep) : null;
 
 // Atualizar no banco
 $pdo = getDBConnection();
@@ -211,64 +229,106 @@ try {
     $updateFields[] = "nome = :nome";
     $params[':nome'] = $nome;
     
-    if (!empty($email)) {
-        $updateFields[] = "email = :email";
-        $params[':email'] = $email;
-    }
-    
-    if ($cpf_cleaned !== null) {
-        $updateFields[] = "cpf = :cpf";
-        $params[':cpf'] = $cpf_cleaned;
-    }
+    $updateFields[] = "email = :email";
+    $params[':email'] = $email;
     
     if (!empty($telefone)) {
         $updateFields[] = "telefone = :telefone";
         $params[':telefone'] = $telefone;
     }
     
-    if ($data_nascimento_formatted !== null) {
-        $updateFields[] = "data_nascimento = :data_nascimento";
-        $params[':data_nascimento'] = $data_nascimento_formatted;
-    }
-    
-    $updateFields[] = "tipo_deficiencia = :tipo_deficiencia";
-    $params[':tipo_deficiencia'] = $tipo_deficiencia;
-    
-    if ($especifique_outra !== '') {
-        $updateFields[] = "especifique_outra = :especifique_outra";
-        $params[':especifique_outra'] = $especifique_outra;
+    // Sobre
+    if ($sobre !== '') {
+        $updateFields[] = "sobre = :sobre";
+        $params[':sobre'] = $sobre;
     } else {
-        $updateFields[] = "especifique_outra = NULL";
+        $updateFields[] = "sobre = NULL";
     }
     
-    if (!empty($cid)) {
-        $updateFields[] = "cid = :cid";
-        $params[':cid'] = $cid;
+    // Habilidades
+    if ($habilidades_json !== null) {
+        $updateFields[] = "habilidades = :habilidades";
+        $params[':habilidades'] = $habilidades_json;
     } else {
-        $updateFields[] = "cid = NULL";
+        $updateFields[] = "habilidades = NULL";
     }
     
-    $updateFields[] = "possui_laudo = :possui_laudo";
-    $params[':possui_laudo'] = $possui_laudo ? 1 : 0;
-    
-    if ($recursos_json !== null) {
-        $updateFields[] = "recursos_acessibilidade = :recursos_acessibilidade";
-        $params[':recursos_acessibilidade'] = $recursos_json;
+    // Formação acadêmica
+    if ($formacao_json !== null) {
+        $updateFields[] = "formacao_academica = :formacao_academica";
+        $params[':formacao_academica'] = $formacao_json;
     } else {
-        $updateFields[] = "recursos_acessibilidade = NULL";
+        $updateFields[] = "formacao_academica = NULL";
     }
     
-    if ($outras_necessidades !== '') {
-        $updateFields[] = "outras_necessidades = :outras_necessidades";
-        $params[':outras_necessidades'] = $outras_necessidades;
+    // Experiências
+    if ($experiencias_json !== null) {
+        $updateFields[] = "experiencias = :experiencias";
+        $params[':experiencias'] = $experiencias_json;
     } else {
-        $updateFields[] = "outras_necessidades = NULL";
+        $updateFields[] = "experiencias = NULL";
     }
     
-    // Se há novo laudo, atualizar o path
-    if ($laudo_medico_path) {
-        $updateFields[] = "laudo_medico_path = :laudo_medico_path";
-        $params[':laudo_medico_path'] = $laudo_medico_path;
+    // Endereço
+    if ($cep_cleaned !== null) {
+        $updateFields[] = "cep = :cep";
+        $params[':cep'] = $cep_cleaned;
+    } else {
+        $updateFields[] = "cep = NULL";
+    }
+    
+    if ($estado !== '') {
+        $updateFields[] = "estado = :estado";
+        $params[':estado'] = $estado;
+    } else {
+        $updateFields[] = "estado = NULL";
+    }
+    
+    if ($cidade !== '') {
+        $updateFields[] = "cidade = :cidade";
+        $params[':cidade'] = $cidade;
+    } else {
+        $updateFields[] = "cidade = NULL";
+    }
+    
+    if ($bairro !== '') {
+        $updateFields[] = "bairro = :bairro";
+        $params[':bairro'] = $bairro;
+    } else {
+        $updateFields[] = "bairro = NULL";
+    }
+    
+    if ($logradouro !== '') {
+        $updateFields[] = "logradouro = :logradouro";
+        $params[':logradouro'] = $logradouro;
+    } else {
+        $updateFields[] = "logradouro = NULL";
+    }
+    
+    if ($numero !== '') {
+        $updateFields[] = "numero = :numero";
+        $params[':numero'] = $numero;
+    } else {
+        $updateFields[] = "numero = NULL";
+    }
+    
+    if ($complemento !== '') {
+        $updateFields[] = "complemento = :complemento";
+        $params[':complemento'] = $complemento;
+    } else {
+        $updateFields[] = "complemento = NULL";
+    }
+    
+    // Foto de perfil
+    if ($foto_perfil_path) {
+        $updateFields[] = "foto_perfil = :foto_perfil";
+        $params[':foto_perfil'] = $foto_perfil_path;
+    }
+    
+    // Currículo
+    if ($curriculo_path) {
+        $updateFields[] = "curriculo_path = :curriculo_path";
+        $params[':curriculo_path'] = $curriculo_path;
     }
     
     // Se for alterar senha
@@ -284,10 +344,16 @@ try {
     $stmt->execute($params);
     
     // Verificar se houve atualização
-    if ($stmt->rowCount() > 0) {
+    if ($stmt->rowCount() > 0 || $foto_perfil_path || $curriculo_path) {
         $success_message = 'Perfil atualizado com sucesso!';
         if ($alterar_senha) {
             $success_message .= ' Senha alterada com sucesso.';
+        }
+        if ($foto_perfil_path) {
+            $success_message .= ' Foto atualizada.';
+        }
+        if ($curriculo_path) {
+            $success_message .= ' Currículo atualizado.';
         }
         $_SESSION['perfil_success'] = $success_message;
     } else {
@@ -303,4 +369,3 @@ try {
     header('Location: perfil-pcd.php');
     exit;
 }
-

@@ -15,8 +15,9 @@ if (file_exists('../config/database.php') && file_exists('../.installed')) {
 // Verificar pré-requisitos
 require_once 'check.php';
 $checks = performSystemChecks();
+// Apenas bloquear se houver erros (errors), warnings são permitidos
 $allChecksPassed = array_reduce($checks, function($carry, $check) {
-    return $carry && $check['status'] === 'ok';
+    return $carry && $check['status'] !== 'error';
 }, true);
 
 ?>
@@ -74,9 +75,20 @@ $allChecksPassed = array_reduce($checks, function($carry, $check) {
                 </div>
             </div>
 
-            <?php if (!$allChecksPassed): ?>
+            <?php 
+            // Verificar se há erros (não apenas warnings)
+            $hasErrors = array_reduce($checks, function($carry, $check) {
+                return $carry || $check['status'] === 'error';
+            }, false);
+            ?>
+            
+            <?php if ($hasErrors): ?>
                 <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
                     <p class="text-red-800 font-medium">Corrija os erros acima antes de continuar a instalação.</p>
+                </div>
+            <?php elseif (!$allChecksPassed): ?>
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                    <p class="text-yellow-800 font-medium">⚠️ Avisos detectados. Você pode continuar, mas revise as informações acima.</p>
                 </div>
             <?php endif; ?>
 
@@ -150,7 +162,7 @@ $allChecksPassed = array_reduce($checks, function($carry, $check) {
 
                 <div class="flex items-center space-x-4 pt-4">
                     <button type="submit" 
-                        <?php echo !$allChecksPassed ? 'disabled' : ''; ?>
+                        <?php echo $hasErrors ? 'disabled' : ''; ?>
                         class="flex-1 bg-purple-600 text-white py-3 rounded-lg font-medium hover:bg-purple-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed">
                         Instalar Vigged
                     </button>

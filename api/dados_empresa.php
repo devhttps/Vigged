@@ -14,7 +14,7 @@ requireAuth(USER_TYPE_COMPANY);
 header('Content-Type: application/json');
 
 $currentUser = getCurrentUser();
-$company_id = $currentUser['user_id'] ?? null;
+$company_id = $currentUser['id'] ?? null;
 
 if (!$company_id) {
     http_response_code(401);

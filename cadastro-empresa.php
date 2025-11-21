@@ -1,35 +1,19 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastro de Empresa - Vigged</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-    </style>
-</head>
-<body class="bg-gray-50">
-    <!-- Navigation -->
-    <nav class="bg-purple-600 text-white h-16">
-        <div class="max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
-            <a href="index.php" class="text-2xl font-bold">Vigged</a>
-            <div class="hidden md:flex space-x-6">
-                <a href="index.php" class="hover:text-purple-200 transition">Início</a>
-                <a href="vagas.php" class="hover:text-purple-200 transition">Vagas</a>
-                <a href="empresas.php" class="hover:text-purple-200 transition">Empresas</a>
-                <a href="sobre-nos.php" class="hover:text-purple-200 transition">Sobre nós</a>
-                <a href="suporte.php" class="hover:text-purple-200 transition">Contato</a>
-            </div>
-            <div class="flex space-x-3">
-                <a href="login.php" class="px-4 py-2 border border-white rounded-lg hover:bg-white hover:text-purple-600 transition">Login</a>
-                <a href="pre-cadastro.php" class="px-4 py-2 bg-white text-purple-600 rounded-lg hover:bg-purple-50 transition">Cadastrar-se</a>
-            </div>
-        </div>
-    </nav>
+<?php
+// Configurar título da página
+$title = 'Cadastro de Empresa';
+
+// Estilos e recursos adicionais (Font Awesome)
+$additionalStyles = [
+    '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">'
+];
+
+// Incluir head
+include 'includes/head.php';
+
+// Incluir navegação pública
+$navType = 'public';
+include 'includes/nav.php';
+?>
 
     <!-- Form Container -->
     <div class="max-w-5xl mx-auto px-4 py-12">
@@ -39,6 +23,11 @@
         </div>
 
         <form action="processar_cadastro_empresa.php" method="POST" enctype="multipart/form-data" class="space-y-8">
+            <?php
+            // Adicionar token CSRF
+            require_once 'includes/csrf.php';
+            echo csrfField();
+            ?>
             <!-- Company Information Section -->
             <div class="bg-white rounded-lg shadow-sm p-8">
                 <h2 class="text-2xl font-bold text-purple-600 mb-6">Informações da Empresa</h2>
@@ -637,12 +626,13 @@
                     </ul>
                 </div>
             </div>
-
-            <div class="border-t border-gray-200 pt-8 text-center text-gray-600 text-sm">
-                <p>&copy; 2025 Vigged. Todos os direitos reservados.</p>
-            </div>
         </div>
-    </footer>
+    </div>
+
+<?php
+// Incluir footer padrão
+include 'includes/footer.php';
+?>
 
     <script>
         // File upload displays
@@ -716,5 +706,7 @@
             }
         });
     </script>
-</body>
-</html>
+<?php
+// Incluir footer padrão
+include 'includes/footer.php';
+?>

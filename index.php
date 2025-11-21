@@ -2,11 +2,14 @@
 // Configurar título da página
 $title = 'Inclusão e Oportunidades Reais';
 
+// Iniciar sessão para manter autenticação
+require_once 'config/auth.php';
+startSecureSession();
+
 // Incluir head
 include 'includes/head.php';
 
-// Incluir navegação pública
-$navType = 'public';
+// Incluir navegação (será determinada automaticamente pela autenticação)
 include 'includes/nav.php';
 ?>
 

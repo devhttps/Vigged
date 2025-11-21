@@ -8,6 +8,7 @@ require_once 'config/constants.php';
 require_once 'config/database.php';
 require_once 'config/auth.php';
 require_once 'includes/functions.php';
+require_once 'includes/csrf.php';
 
 // Iniciar sessão segura
 startSecureSession();
@@ -17,6 +18,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: cadastro-empresa.php');
     exit;
 }
+
+// Validar token CSRF
+requireCSRFToken('cadastro-empresa.php');
 
 // Coletar e sanitizar dados do formulário
 $razao_social = sanitizeInput($_POST['razao_social'] ?? '');

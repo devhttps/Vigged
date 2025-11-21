@@ -29,6 +29,23 @@ CREATE TABLE IF NOT EXISTS users (
     recursos_acessibilidade JSON,
     outras_necessidades TEXT,
     
+    -- Perfil profissional
+    foto_perfil VARCHAR(500),
+    sobre TEXT,
+    habilidades JSON,
+    curriculo_path VARCHAR(500),
+    formacao_academica JSON,
+    experiencias JSON,
+    
+    -- Endereço
+    cep VARCHAR(9),
+    estado VARCHAR(2),
+    cidade VARCHAR(100),
+    bairro VARCHAR(100),
+    logradouro VARCHAR(255),
+    numero VARCHAR(20),
+    complemento VARCHAR(100),
+    
     -- Status e controle
     status ENUM('ativo', 'inativo', 'pendente') DEFAULT 'pendente',
     email_verificado BOOLEAN DEFAULT FALSE,
@@ -37,7 +54,9 @@ CREATE TABLE IF NOT EXISTS users (
     
     INDEX idx_email (email),
     INDEX idx_tipo (tipo),
-    INDEX idx_status (status)
+    INDEX idx_status (status),
+    INDEX idx_cidade (cidade),
+    INDEX idx_estado (estado)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Tabela: companies (Empresas)

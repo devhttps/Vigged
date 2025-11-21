@@ -7,6 +7,7 @@
 require_once 'config/constants.php';
 require_once 'config/database.php';
 require_once 'config/auth.php';
+require_once 'includes/csrf.php';
 
 // Iniciar sessão
 startSecureSession();
@@ -20,21 +21,40 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+// Validar token CSRF
+requireCSRFToken('perfil-empresa.php');
+
 // Função para sanitizar dados
 function sanitizeInput($data) {
-    return htmlspecialchars(strip_tags(trim($data)));
+    return htmlspecialchars(strip_tags(trim($data)), ENT_QUOTES, 'UTF-8');
+}
+
+// Função para sanitizar textarea (preserva quebras de linha)
+function sanitizeTextarea($data) {
+    if (empty($data)) {
+        return '';
+    }
+    // Remove tags HTML perigosas mas preserva quebras de linha
+    $data = strip_tags($data);
+    // Escapa caracteres especiais mas preserva quebras de linha
+    $data = htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
+    return trim($data);
 }
 
 // Coletar dados do formulário
 $titulo = sanitizeInput($_POST['titulo'] ?? '');
-$descricao = sanitizeInput($_POST['descricao'] ?? '');
-$requisitos = sanitizeInput($_POST['requisitos'] ?? '');
+$descricao = sanitizeTextarea($_POST['descricao'] ?? '');
+$requisitos = sanitizeTextarea($_POST['requisitos'] ?? '');
 $localizacao = sanitizeInput($_POST['localizacao'] ?? '');
 $tipo_contrato = sanitizeInput($_POST['tipo_contrato'] ?? '');
 $faixa_salarial = sanitizeInput($_POST['faixa_salarial'] ?? '');
 $destacada = isset($_POST['destacada']) && $_POST['destacada'] === 'sim';
 $action = sanitizeInput($_POST['action'] ?? 'create'); // create ou update
 $job_id = isset($_POST['job_id']) ? (int)$_POST['job_id'] : null;
+
+// Debug: Log dos dados recebidos
+error_log("Processar Vaga - Requisitos recebido: " . (isset($_POST['requisitos']) ? 'SIM (' . strlen($_POST['requisitos']) . ' chars)' : 'NÃO'));
+error_log("Processar Vaga - Requisitos após sanitização: " . (empty($requisitos) ? 'VAZIO' : substr($requisitos, 0, 100)));
 
 // Validações
 $errors = [];
@@ -55,17 +75,27 @@ if (empty($tipo_contrato)) {
     $errors[] = "Tipo de contrato é obrigatório.";
 }
 
-if (!in_array($tipo_contrato, ['CLT', 'PJ', 'Estagio', 'Temporario'])) {
+// Normalizar tipo de contrato (aceitar com e sem acento)
+$tipo_contrato_normalizado = $tipo_contrato;
+if ($tipo_contrato === 'Estágio') {
+    $tipo_contrato_normalizado = 'Estagio';
+} elseif ($tipo_contrato === 'Temporário') {
+    $tipo_contrato_normalizado = 'Temporario';
+}
+
+if (!in_array($tipo_contrato_normalizado, ['CLT', 'PJ', 'Estagio', 'Temporario'])) {
     $errors[] = "Tipo de contrato inválido.";
+} else {
+    $tipo_contrato = $tipo_contrato_normalizado;
 }
 
 // Obter ID da empresa logada
 $currentUser = getCurrentUser();
-if (!$currentUser || !isset($currentUser['user_id'])) {
+if (!$currentUser || !isset($currentUser['id'])) {
     $errors[] = "Usuário não autenticado.";
 }
 
-$company_id = $currentUser['user_id'] ?? null;
+$company_id = $currentUser['id'] ?? null;
 
 // Se houver erros, retornar JSON com erros
 if (!empty($errors)) {
@@ -112,10 +142,10 @@ try {
         $stmt->execute([
             ':titulo' => $titulo,
             ':descricao' => $descricao,
-            ':requisitos' => !empty($requisitos) ? $requisitos : null,
+            ':requisitos' => $requisitos ?: null, // Salvar como NULL se vazio
             ':localizacao' => $localizacao,
             ':tipo_contrato' => $tipo_contrato,
-            ':faixa_salarial' => !empty($faixa_salarial) ? $faixa_salarial : null,
+            ':faixa_salarial' => $faixa_salarial ?: null,
             ':destacada' => $destacada ? 1 : 0,
             ':id' => $job_id,
             ':company_id' => $company_id
@@ -138,10 +168,10 @@ try {
             ':company_id' => $company_id,
             ':titulo' => $titulo,
             ':descricao' => $descricao,
-            ':requisitos' => !empty($requisitos) ? $requisitos : null,
+            ':requisitos' => $requisitos ?: null, // Salvar como NULL se vazio
             ':localizacao' => $localizacao,
             ':tipo_contrato' => $tipo_contrato,
-            ':faixa_salarial' => !empty($faixa_salarial) ? $faixa_salarial : null,
+            ':faixa_salarial' => $faixa_salarial ?: null,
             ':destacada' => $destacada ? 1 : 0
         ]);
         

@@ -41,7 +41,7 @@ try {
         FROM jobs j
         INNER JOIN companies c ON j.company_id = c.id
         LEFT JOIN applications a ON j.id = a.job_id
-        WHERE j.id = ? AND j.status = 'ativa' AND c.status = 'ativa'
+        WHERE j.id = ? AND j.status = 'ativa' AND c.status IN ('ativa', 'pendente')
         GROUP BY j.id
     ");
     

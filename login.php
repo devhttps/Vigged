@@ -59,6 +59,11 @@ include 'includes/nav.php';
             <div id="loginFormContainer">
                 <h1 class="text-2xl font-bold text-purple-600 text-center mb-6">Bem vindo de volta!</h1>
                 <form id="loginForm" action="processar_login.php" method="POST" class="space-y-6">
+                    <?php
+                    // Adicionar token CSRF
+                    require_once 'includes/csrf.php';
+                    echo csrfField();
+                    ?>
                 <!-- Email Field -->
                 <div>
                     <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email</label>
