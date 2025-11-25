@@ -99,6 +99,12 @@ include 'includes/head.php';
                         </a>
                     </li>
                     <li>
+                        <a href="#gerenciar-planos" class="sidebar-link flex items-center space-x-3 p-3 rounded-lg text-gray-700">
+                            <i class="fas fa-credit-card w-5"></i>
+                            <span>Gerenciar Planos</span>
+                        </a>
+                    </li>
+                    <li>
                         <a href="#relatorios" class="sidebar-link flex items-center space-x-3 p-3 rounded-lg text-gray-700">
                             <i class="fas fa-file-alt w-5"></i>
                             <span>Relatórios</span>
@@ -702,6 +708,18 @@ include 'includes/head.php';
                     </div>
                 </div>
 
+                <!-- Relatório de Planos -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden mb-6">
+                    <div class="p-6 border-b border-gray-200">
+                        <h3 class="text-xl font-bold text-gray-800">Relatório de Planos</h3>
+                    </div>
+                    <div id="relatorio-planos" class="p-6">
+                        <div class="flex items-center justify-center py-8">
+                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Tabela Detalhada -->
                 <div class="bg-white rounded-xl shadow-md overflow-hidden">
                     <div class="p-6 border-b border-gray-200">
@@ -709,6 +727,75 @@ include 'includes/head.php';
                     </div>
                     <div id="relatorio-detalhes" class="p-6">
                         <p class="text-gray-500 text-center py-8">Selecione um período e tipo de relatório para visualizar os detalhes.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Gerenciar Planos Section -->
+            <section id="gerenciar-planos-section" class="hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-3xl font-bold text-gray-800">Gerenciar Planos das Empresas</h2>
+                    <button onclick="loadEmpresasPlanos()" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition">
+                        <i class="fas fa-sync-alt mr-2"></i>Atualizar
+                    </button>
+                </div>
+
+                <!-- Search and Filter -->
+                <div class="bg-white p-4 rounded-xl shadow-md mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <input type="text" id="empresa-plano-search" placeholder="Buscar por nome ou CNPJ..." class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <select id="empresa-plano-filter" class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <option value="todas">Todos os Planos</option>
+                            <option value="com_plano">Com Plano Pago</option>
+                            <option value="gratuito">Gratuito</option>
+                            <option value="essencial">Essencial</option>
+                            <option value="profissional">Profissional</option>
+                            <option value="enterprise">Enterprise</option>
+                        </select>
+                        <select id="empresa-plano-status-filter" class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <option value="todas">Todos os Status</option>
+                            <option value="ativo">Ativo</option>
+                            <option value="pendente">Pendente</option>
+                            <option value="cancelado">Cancelado</option>
+                        </select>
+                        <button onclick="filterEmpresasPlanos()" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition">
+                            <i class="fas fa-search mr-2"></i>Buscar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Companies with Plans Table -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Empresa</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CNPJ</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plano Atual</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vagas</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Candidaturas</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="empresas-planos-table-body" class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td colspan="7" class="px-6 py-8 text-center text-gray-500">
+                                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+                                    <p class="mt-4">Carregando empresas...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="flex items-center justify-between mt-6">
+                    <p class="text-sm text-gray-700">
+                        Mostrando <span id="empresas-planos-showing-start">0</span> a <span id="empresas-planos-showing-end">0</span> de <span id="empresas-planos-total">0</span> resultados
+                    </p>
+                    <div id="empresas-planos-pagination" class="flex space-x-2">
+                        <!-- Will be populated by JavaScript -->
                     </div>
                 </div>
             </section>
@@ -862,6 +949,59 @@ include 'includes/head.php';
         </div>
     </div>
 
+    <!-- Edit Plano Modal -->
+    <div id="edit-plano-modal" class="modal">
+        <div class="bg-white rounded-xl shadow-2xl p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">Editar Plano da Empresa</h3>
+                <button onclick="closeEditPlanoModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            <form id="edit-plano-form" onsubmit="savePlano(event)">
+                <input type="hidden" id="edit-plano-company-id">
+                <div class="space-y-4">
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="text-sm text-gray-600 mb-1">Empresa:</p>
+                        <p id="edit-plano-empresa-nome" class="font-semibold text-gray-900"></p>
+                        <p id="edit-plano-empresa-cnpj" class="text-sm text-gray-500 mt-1"></p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Plano *</label>
+                        <select id="edit-plano-plano" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <option value="gratuito">Gratuito</option>
+                            <option value="essencial">Essencial - R$199/mês</option>
+                            <option value="profissional">Profissional - R$399/mês</option>
+                            <option value="enterprise">Enterprise - R$799/mês</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Status do Plano *</label>
+                        <select id="edit-plano-status" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <option value="ativo">Ativo</option>
+                            <option value="pendente">Pendente</option>
+                            <option value="cancelado">Cancelado</option>
+                            <option value="expirado">Expirado</option>
+                        </select>
+                    </div>
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <p class="text-yellow-800 text-sm">
+                            <strong>⚠️ Atenção:</strong> Ao alterar o plano, a empresa será notificada automaticamente.
+                        </p>
+                    </div>
+                </div>
+                <div class="flex space-x-4 mt-6">
+                    <button type="button" onclick="closeEditPlanoModal()" class="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="flex-1 bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition">
+                        Salvar Alterações
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Company Modal -->
     <div id="company-modal" class="modal">
         <div class="bg-white rounded-xl shadow-2xl p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
@@ -970,6 +1110,9 @@ include 'includes/head.php';
                 } else if (target === 'planos') {
                     document.getElementById('planos-section').classList.remove('hidden');
                     loadPlanosPendentes();
+                } else if (target === 'gerenciar-planos') {
+                    document.getElementById('gerenciar-planos-section').classList.remove('hidden');
+                    loadEmpresasPlanos();
                 } else if (target === 'relatorios') {
                     document.getElementById('relatorios-section').classList.remove('hidden');
                     loadRelatorios();
@@ -2363,8 +2506,147 @@ include 'includes/head.php';
             if (stats) {
                 updateRelatorioCards();
                 renderRelatorioGraficos();
+                await loadRelatorioPlanos();
             } else {
                 await loadStats();
+            }
+        }
+
+        async function loadRelatorioPlanos() {
+            try {
+                const response = await fetch('api/admin_planos.php?action=list&limit=1000');
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    const empresas = result.data;
+                    
+                    // Contar planos
+                    const planosCount = {
+                        'gratuito': 0,
+                        'essencial': 0,
+                        'profissional': 0,
+                        'enterprise': 0
+                    };
+                    
+                    const statusCount = {
+                        'ativo': 0,
+                        'pendente': 0,
+                        'cancelado': 0,
+                        'expirado': 0
+                    };
+                    
+                    empresas.forEach(empresa => {
+                        const plano = empresa.plano || 'gratuito';
+                        const status = empresa.plano_status || 'ativo';
+                        
+                        if (planosCount.hasOwnProperty(plano)) {
+                            planosCount[plano]++;
+                        }
+                        if (statusCount.hasOwnProperty(status)) {
+                            statusCount[status]++;
+                        }
+                    });
+                    
+                    const planNames = {
+                        'gratuito': 'Gratuito',
+                        'essencial': 'Essencial',
+                        'profissional': 'Profissional',
+                        'enterprise': 'Enterprise'
+                    };
+                    
+                    let html = `
+                        <div class="grid md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <h4 class="font-bold text-gray-800 mb-4">Distribuição por Plano</h4>
+                                <div class="space-y-3">
+                    `;
+                    
+                    Object.entries(planosCount).forEach(([plano, total]) => {
+                        const totalEmpresas = empresas.length || 1;
+                        const percentage = (total / totalEmpresas * 100).toFixed(1);
+                        const color = plano === 'gratuito' ? 'bg-gray-500' :
+                                     plano === 'essencial' ? 'bg-blue-500' :
+                                     plano === 'profissional' ? 'bg-purple-500' :
+                                     'bg-yellow-500';
+                        
+                        html += `
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="text-gray-700">${planNames[plano]}</span>
+                                    <span class="text-gray-600">${total} (${percentage}%)</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-3">
+                                    <div class="${color} h-3 rounded-full" style="width: ${percentage}%"></div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += `
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-800 mb-4">Status dos Planos</h4>
+                                <div class="space-y-3">
+                    `;
+                    
+                    Object.entries(statusCount).forEach(([status, total]) => {
+                        const totalEmpresas = empresas.length || 1;
+                        const percentage = (total / totalEmpresas * 100).toFixed(1);
+                        const statusText = status === 'ativo' ? 'Ativos' :
+                                          status === 'pendente' ? 'Pendentes' :
+                                          status === 'cancelado' ? 'Cancelados' : 'Expirados';
+                        const color = status === 'ativo' ? 'bg-green-500' :
+                                     status === 'pendente' ? 'bg-yellow-500' :
+                                     status === 'cancelado' ? 'bg-red-500' : 'bg-gray-500';
+                        
+                        html += `
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="text-gray-700">${statusText}</span>
+                                    <span class="text-gray-600">${total} (${percentage}%)</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-3">
+                                    <div class="${color} h-3 rounded-full" style="width: ${percentage}%"></div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += `
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-6">
+                            <h4 class="font-bold text-gray-800 mb-4">Resumo</h4>
+                            <div class="grid md:grid-cols-4 gap-4">
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <p class="text-sm text-gray-600">Total de Empresas</p>
+                                    <p class="text-2xl font-bold text-gray-800">${empresas.length}</p>
+                                </div>
+                                <div class="bg-blue-50 p-4 rounded-lg">
+                                    <p class="text-sm text-gray-600">Com Plano Pago</p>
+                                    <p class="text-2xl font-bold text-blue-600">${planosCount.essencial + planosCount.profissional + planosCount.enterprise}</p>
+                                </div>
+                                <div class="bg-green-50 p-4 rounded-lg">
+                                    <p class="text-sm text-gray-600">Planos Ativos</p>
+                                    <p class="text-2xl font-bold text-green-600">${statusCount.ativo}</p>
+                                </div>
+                                <div class="bg-yellow-50 p-4 rounded-lg">
+                                    <p class="text-sm text-gray-600">Pendentes</p>
+                                    <p class="text-2xl font-bold text-yellow-600">${statusCount.pendente}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.getElementById('relatorio-planos').innerHTML = html;
+                } else {
+                    document.getElementById('relatorio-planos').innerHTML = '<p class="text-red-500 text-center py-8">Erro ao carregar relatório de planos.</p>';
+                }
+            } catch (error) {
+                console.error('Erro ao carregar relatório de planos:', error);
+                document.getElementById('relatorio-planos').innerHTML = '<p class="text-red-500 text-center py-8">Erro ao carregar relatório de planos.</p>';
             }
         }
 
@@ -2483,6 +2765,277 @@ include 'includes/head.php';
 
         function exportRelatorio(format) {
             alert(`Exportação em formato ${format.toUpperCase()} será implementada em breve.`);
+        }
+
+        // Gerenciar Planos das Empresas
+        let currentEmpresaPlanoPage = 1;
+        let empresasPlanos = [];
+
+        async function loadEmpresasPlanos(plano = 'todas', status = 'todas', search = '') {
+            const tbody = document.getElementById('empresas-planos-table-body');
+            tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-8 text-center text-gray-500"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div><p class="mt-4">Carregando empresas...</p></td></tr>';
+            
+            try {
+                const params = new URLSearchParams({
+                    action: 'list',
+                    plano: plano,
+                    status: status,
+                    page: currentEmpresaPlanoPage,
+                    limit: itemsPerPage
+                });
+                
+                if (search) {
+                    params.append('search', search);
+                }
+                
+                const response = await fetch(`api/admin_planos.php?${params}`);
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    empresasPlanos = result.data;
+                    renderEmpresasPlanos();
+                    renderEmpresasPlanosPagination(result.pagination);
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-8 text-center text-red-500">Erro ao carregar empresas: ' + (result.error || 'Erro desconhecido') + '</td></tr>';
+                }
+            } catch (error) {
+                console.error('Erro ao carregar empresas:', error);
+                tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-8 text-center text-red-500">Erro ao carregar empresas.</td></tr>';
+            }
+        }
+
+        function renderEmpresasPlanos() {
+            const tbody = document.getElementById('empresas-planos-table-body');
+            tbody.innerHTML = '';
+            
+            if (empresasPlanos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-8 text-center text-gray-500">Nenhuma empresa encontrada.</td></tr>';
+                return;
+            }
+            
+            const planNames = {
+                'gratuito': 'Gratuito',
+                'essencial': 'Essencial',
+                'profissional': 'Profissional',
+                'enterprise': 'Enterprise'
+            };
+            
+            empresasPlanos.forEach(empresa => {
+                const empresaNome = empresa.nome_fantasia || empresa.razao_social || 'Sem nome';
+                const plano = empresa.plano || 'gratuito';
+                const planoStatus = empresa.plano_status || 'ativo';
+                
+                const planoBadge = plano === 'gratuito' ? 'bg-gray-100 text-gray-800' :
+                                 plano === 'essencial' ? 'bg-blue-100 text-blue-800' :
+                                 plano === 'profissional' ? 'bg-purple-100 text-purple-800' :
+                                 'bg-yellow-100 text-yellow-800';
+                
+                const statusBadge = planoStatus === 'ativo' ? 'bg-green-100 text-green-800' :
+                                  planoStatus === 'pendente' ? 'bg-yellow-100 text-yellow-800' :
+                                  planoStatus === 'cancelado' ? 'bg-red-100 text-red-800' :
+                                  'bg-gray-100 text-gray-800';
+                
+                const temSolicitacaoPendente = empresa.solicitacoes_pendentes > 0;
+                
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4">
+                            <div class="text-sm font-medium text-gray-900">${empresaNome}</div>
+                            <div class="text-sm text-gray-500">${empresa.email_corporativo || ''}</div>
+                            ${temSolicitacaoPendente ? '<span class="inline-block mt-1 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">Solicitação pendente</span>' : ''}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${empresa.cnpj || '-'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${planoBadge}">
+                                ${planNames[plano] || plano}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusBadge}">
+                                ${planoStatus === 'ativo' ? 'Ativo' : planoStatus === 'pendente' ? 'Pendente' : planoStatus === 'cancelado' ? 'Cancelado' : planoStatus}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <span class="font-semibold">${empresa.vagas_ativas || 0}</span> / ${empresa.total_vagas || 0}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${empresa.total_candidaturas || 0}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                            <button onclick="openEditPlanoModal(${empresa.id})" class="text-blue-600 hover:text-blue-900" title="Editar Plano">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            ${plano !== 'gratuito' ? `
+                                <button onclick="removePlano(${empresa.id})" class="text-red-600 hover:text-red-900" title="Remover Plano">
+                                    <i class="fas fa-times-circle"></i>
+                                </button>
+                            ` : ''}
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            document.getElementById('empresas-planos-showing-start').textContent = (currentEmpresaPlanoPage - 1) * itemsPerPage + 1;
+            document.getElementById('empresas-planos-showing-end').textContent = Math.min(currentEmpresaPlanoPage * itemsPerPage, empresasPlanos.length);
+            document.getElementById('empresas-planos-total').textContent = empresasPlanos.length;
+        }
+
+        function renderEmpresasPlanosPagination(pagination) {
+            const paginationDiv = document.getElementById('empresas-planos-pagination');
+            paginationDiv.innerHTML = '';
+            
+            if (!pagination || pagination.pages <= 1) return;
+            
+            const totalPages = pagination.pages;
+            
+            paginationDiv.innerHTML += `
+                <button onclick="changeEmpresaPlanoPage(${currentEmpresaPlanoPage - 1})" 
+                        ${currentEmpresaPlanoPage === 1 ? 'disabled' : ''} 
+                        class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Anterior
+                </button>
+            `;
+            
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentEmpresaPlanoPage - 1 && i <= currentEmpresaPlanoPage + 1)) {
+                    const activeClass = i === currentEmpresaPlanoPage ? 'bg-purple-600 text-white' : 'border border-gray-300 hover:bg-gray-50';
+                    paginationDiv.innerHTML += `
+                        <button onclick="changeEmpresaPlanoPage(${i})" class="px-4 py-2 ${activeClass} rounded-lg">
+                            ${i}
+                        </button>
+                    `;
+                } else if (i === currentEmpresaPlanoPage - 2 || i === currentEmpresaPlanoPage + 2) {
+                    paginationDiv.innerHTML += '<span class="px-2">...</span>';
+                }
+            }
+            
+            paginationDiv.innerHTML += `
+                <button onclick="changeEmpresaPlanoPage(${currentEmpresaPlanoPage + 1})" 
+                        ${currentEmpresaPlanoPage === totalPages ? 'disabled' : ''} 
+                        class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Próximo
+                </button>
+            `;
+        }
+
+        async function changeEmpresaPlanoPage(page) {
+            currentEmpresaPlanoPage = page;
+            const plano = document.getElementById('empresa-plano-filter')?.value || 'todas';
+            const status = document.getElementById('empresa-plano-status-filter')?.value || 'todas';
+            const search = document.getElementById('empresa-plano-search')?.value || '';
+            await loadEmpresasPlanos(plano, status, search);
+        }
+
+        async function filterEmpresasPlanos() {
+            currentEmpresaPlanoPage = 1;
+            const plano = document.getElementById('empresa-plano-filter')?.value || 'todas';
+            const status = document.getElementById('empresa-plano-status-filter')?.value || 'todas';
+            const search = document.getElementById('empresa-plano-search')?.value || '';
+            await loadEmpresasPlanos(plano, status, search);
+        }
+
+        function openEditPlanoModal(companyId) {
+            const empresa = empresasPlanos.find(e => e.id === companyId);
+            if (!empresa) {
+                alert('Empresa não encontrada');
+                return;
+            }
+            
+            const modal = document.getElementById('edit-plano-modal');
+            document.getElementById('edit-plano-company-id').value = companyId;
+            document.getElementById('edit-plano-empresa-nome').textContent = empresa.nome_fantasia || empresa.razao_social;
+            document.getElementById('edit-plano-empresa-cnpj').textContent = 'CNPJ: ' + (empresa.cnpj || '-');
+            document.getElementById('edit-plano-plano').value = empresa.plano || 'gratuito';
+            document.getElementById('edit-plano-status').value = empresa.plano_status || 'ativo';
+            
+            modal.classList.add('active');
+        }
+
+        function closeEditPlanoModal() {
+            document.getElementById('edit-plano-modal').classList.remove('active');
+            document.getElementById('edit-plano-form').reset();
+        }
+
+        async function savePlano(event) {
+            event.preventDefault();
+            
+            const companyId = parseInt(document.getElementById('edit-plano-company-id').value);
+            const novoPlano = document.getElementById('edit-plano-plano').value;
+            const novoStatus = document.getElementById('edit-plano-status').value;
+            
+            await updatePlano(companyId, novoPlano, novoStatus);
+            closeEditPlanoModal();
+        }
+
+        async function updatePlano(companyId, novoPlano, novoStatus) {
+            try {
+                const response = await fetch('api/admin_planos.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'update_plano',
+                        company_id: companyId,
+                        plano: novoPlano,
+                        plano_status: novoStatus
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Plano atualizado com sucesso!');
+                    await loadEmpresasPlanos();
+                } else {
+                    alert('Erro ao atualizar plano: ' + (result.error || 'Erro desconhecido'));
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar plano:', error);
+                alert('Erro ao atualizar plano. Tente novamente.');
+            }
+        }
+
+        async function removePlano(companyId) {
+            const empresa = empresasPlanos.find(e => e.id === companyId);
+            if (!empresa) {
+                alert('Empresa não encontrada');
+                return;
+            }
+            
+            const planNames = {
+                'gratuito': 'Gratuito',
+                'essencial': 'Essencial',
+                'profissional': 'Profissional',
+                'enterprise': 'Enterprise'
+            };
+            
+            if (!confirm(`Tem certeza que deseja remover o plano "${planNames[empresa.plano]}" da empresa "${empresa.nome_fantasia || empresa.razao_social}"?\n\nA empresa voltará para o plano gratuito.`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('api/admin_planos.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'remove_plano',
+                        company_id: companyId
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Plano removido com sucesso! A empresa voltou para o plano gratuito.');
+                    await loadEmpresasPlanos();
+                } else {
+                    alert('Erro ao remover plano: ' + (result.error || 'Erro desconhecido'));
+                }
+            } catch (error) {
+                console.error('Erro ao remover plano:', error);
+                alert('Erro ao remover plano. Tente novamente.');
+            }
         }
 
         // Initialize dashboard on load
