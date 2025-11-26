@@ -92,6 +92,19 @@ include 'includes/head.php';
                         </a>
                     </li>
                     <li>
+                        <a href="#planos" class="sidebar-link flex items-center space-x-3 p-3 rounded-lg text-gray-700">
+                            <i class="fas fa-crown w-5"></i>
+                            <span>Planos Pendentes</span>
+                            <span id="planosBadge" class="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-1 hidden">0</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#gerenciar-planos" class="sidebar-link flex items-center space-x-3 p-3 rounded-lg text-gray-700">
+                            <i class="fas fa-credit-card w-5"></i>
+                            <span>Gerenciar Planos</span>
+                        </a>
+                    </li>
+                    <li>
                         <a href="#relatorios" class="sidebar-link flex items-center space-x-3 p-3 rounded-lg text-gray-700">
                             <i class="fas fa-file-alt w-5"></i>
                             <span>Relatórios</span>
@@ -527,6 +540,283 @@ include 'includes/head.php';
                 </div>
             </section>
 
+            <!-- Vagas Section -->
+            <section id="vagas-section" class="hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-3xl font-bold text-gray-800">Gerenciar Vagas</h2>
+                    <button onclick="loadVagas()" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition">
+                        <i class="fas fa-sync-alt mr-2"></i>Atualizar
+                    </button>
+                </div>
+
+                <!-- Search and Filter -->
+                <div class="bg-white p-4 rounded-xl shadow-md mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <input type="text" id="job-search" placeholder="Buscar por título ou empresa..." class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <select id="job-status-filter" class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <option value="todas">Todas</option>
+                            <option value="ativa">Ativas</option>
+                            <option value="pausada">Pausadas</option>
+                            <option value="encerrada">Encerradas</option>
+                        </select>
+                        <button onclick="filterJobs()" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition">
+                            <i class="fas fa-search mr-2"></i>Buscar
+                        </button>
+                        <button onclick="exportJobs()" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition">
+                            <i class="fas fa-download mr-2"></i>Exportar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Jobs Table -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vaga</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Empresa</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Localização</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Candidaturas</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Visualizações</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="jobs-table-body" class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td colspan="8" class="px-6 py-8 text-center text-gray-500">
+                                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+                                    <p class="mt-4">Carregando vagas...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="flex items-center justify-between mt-6">
+                    <p class="text-sm text-gray-700">
+                        Mostrando <span id="jobs-showing-start">0</span> a <span id="jobs-showing-end">0</span> de <span id="jobs-total">0</span> resultados
+                    </p>
+                    <div id="jobs-pagination" class="flex space-x-2">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Relatórios Section -->
+            <section id="relatorios-section" class="hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-3xl font-bold text-gray-800">Relatórios e Analytics</h2>
+                    <div class="flex space-x-3">
+                        <button onclick="exportRelatorio('pdf')" class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition">
+                            <i class="fas fa-file-pdf mr-2"></i>Exportar PDF
+                        </button>
+                        <button onclick="exportRelatorio('excel')" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition">
+                            <i class="fas fa-file-excel mr-2"></i>Exportar Excel
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filtros de Período -->
+                <div class="bg-white p-4 rounded-xl shadow-md mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Data Inicial</label>
+                            <input type="date" id="relatorio-data-inicio" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Data Final</label>
+                            <input type="date" id="relatorio-data-fim" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Relatório</label>
+                            <select id="relatorio-tipo" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                <option value="geral">Geral</option>
+                                <option value="vagas">Vagas</option>
+                                <option value="candidaturas">Candidaturas</option>
+                                <option value="empresas">Empresas</option>
+                                <option value="usuarios">Usuários</option>
+                            </select>
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="gerarRelatorio()" class="w-full bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition">
+                                <i class="fas fa-chart-bar mr-2"></i>Gerar Relatório
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cards de Resumo -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                    <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-blue-500">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm mb-1">Total de Vagas</p>
+                                <p id="relatorio-total-vagas" class="text-3xl font-bold text-blue-600">0</p>
+                            </div>
+                            <i class="fas fa-briefcase text-blue-500 text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-green-500">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm mb-1">Candidaturas</p>
+                                <p id="relatorio-total-candidaturas" class="text-3xl font-bold text-green-600">0</p>
+                            </div>
+                            <i class="fas fa-file-alt text-green-500 text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-purple-500">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm mb-1">Taxa de Conversão</p>
+                                <p id="relatorio-taxa-conversao" class="text-3xl font-bold text-purple-600">0%</p>
+                            </div>
+                            <i class="fas fa-percentage text-purple-500 text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-orange-500">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm mb-1">Taxa de Aprovação</p>
+                                <p id="relatorio-taxa-aprovacao" class="text-3xl font-bold text-orange-600">0%</p>
+                            </div>
+                            <i class="fas fa-check-circle text-orange-500 text-3xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gráficos -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">Vagas por Status</h3>
+                        <div id="grafico-vagas-status" class="h-64">
+                            <div class="flex items-center justify-center h-full">
+                                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">Candidaturas por Status</h3>
+                        <div id="grafico-candidaturas-status" class="h-64">
+                            <div class="flex items-center justify-center h-full">
+                                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Relatório de Planos -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden mb-6">
+                    <div class="p-6 border-b border-gray-200">
+                        <h3 class="text-xl font-bold text-gray-800">Relatório de Planos</h3>
+                    </div>
+                    <div id="relatorio-planos" class="p-6">
+                        <div class="flex items-center justify-center py-8">
+                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabela Detalhada -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                    <div class="p-6 border-b border-gray-200">
+                        <h3 class="text-xl font-bold text-gray-800">Detalhamento</h3>
+                    </div>
+                    <div id="relatorio-detalhes" class="p-6">
+                        <p class="text-gray-500 text-center py-8">Selecione um período e tipo de relatório para visualizar os detalhes.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Gerenciar Planos Section -->
+            <section id="gerenciar-planos-section" class="hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-3xl font-bold text-gray-800">Gerenciar Planos das Empresas</h2>
+                    <button onclick="loadEmpresasPlanos()" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition">
+                        <i class="fas fa-sync-alt mr-2"></i>Atualizar
+                    </button>
+                </div>
+
+                <!-- Search and Filter -->
+                <div class="bg-white p-4 rounded-xl shadow-md mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <input type="text" id="empresa-plano-search" placeholder="Buscar por nome ou CNPJ..." class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <select id="empresa-plano-filter" class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <option value="todas">Todos os Planos</option>
+                            <option value="com_plano">Com Plano Pago</option>
+                            <option value="gratuito">Gratuito</option>
+                            <option value="essencial">Essencial</option>
+                            <option value="profissional">Profissional</option>
+                            <option value="enterprise">Enterprise</option>
+                        </select>
+                        <select id="empresa-plano-status-filter" class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <option value="todas">Todos os Status</option>
+                            <option value="ativo">Ativo</option>
+                            <option value="pendente">Pendente</option>
+                            <option value="cancelado">Cancelado</option>
+                        </select>
+                        <button onclick="filterEmpresasPlanos()" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition">
+                            <i class="fas fa-search mr-2"></i>Buscar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Companies with Plans Table -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Empresa</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CNPJ</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plano Atual</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vagas</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Candidaturas</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="empresas-planos-table-body" class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td colspan="7" class="px-6 py-8 text-center text-gray-500">
+                                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+                                    <p class="mt-4">Carregando empresas...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="flex items-center justify-between mt-6">
+                    <p class="text-sm text-gray-700">
+                        Mostrando <span id="empresas-planos-showing-start">0</span> a <span id="empresas-planos-showing-end">0</span> de <span id="empresas-planos-total">0</span> resultados
+                    </p>
+                    <div id="empresas-planos-pagination" class="flex space-x-2">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Planos Pendentes Section -->
+            <section id="planos-section" class="hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-3xl font-bold text-gray-800">Solicitações de Planos Pendentes</h2>
+                    <button onclick="loadPlanosPendentes()" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition">
+                        <i class="fas fa-sync-alt mr-2"></i>Atualizar
+                    </button>
+                </div>
+
+                <div id="planosPendentesList" class="space-y-4">
+                    <div class="bg-white rounded-xl shadow-md p-6 text-center">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+                        <p class="mt-4 text-gray-600">Carregando solicitações...</p>
+                    </div>
+                </div>
+            </section>
+
             <!-- Companies Section -->
             <section id="empresas-section" class="hidden">
                 <div class="flex items-center justify-between mb-6">
@@ -659,6 +949,59 @@ include 'includes/head.php';
         </div>
     </div>
 
+    <!-- Edit Plano Modal -->
+    <div id="edit-plano-modal" class="modal">
+        <div class="bg-white rounded-xl shadow-2xl p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">Editar Plano da Empresa</h3>
+                <button onclick="closeEditPlanoModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            <form id="edit-plano-form" onsubmit="savePlano(event)">
+                <input type="hidden" id="edit-plano-company-id">
+                <div class="space-y-4">
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="text-sm text-gray-600 mb-1">Empresa:</p>
+                        <p id="edit-plano-empresa-nome" class="font-semibold text-gray-900"></p>
+                        <p id="edit-plano-empresa-cnpj" class="text-sm text-gray-500 mt-1"></p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Plano *</label>
+                        <select id="edit-plano-plano" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <option value="gratuito">Gratuito</option>
+                            <option value="essencial">Essencial - R$199/mês</option>
+                            <option value="profissional">Profissional - R$399/mês</option>
+                            <option value="enterprise">Enterprise - R$799/mês</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Status do Plano *</label>
+                        <select id="edit-plano-status" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <option value="ativo">Ativo</option>
+                            <option value="pendente">Pendente</option>
+                            <option value="cancelado">Cancelado</option>
+                            <option value="expirado">Expirado</option>
+                        </select>
+                    </div>
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <p class="text-yellow-800 text-sm">
+                            <strong>⚠️ Atenção:</strong> Ao alterar o plano, a empresa será notificada automaticamente.
+                        </p>
+                    </div>
+                </div>
+                <div class="flex space-x-4 mt-6">
+                    <button type="button" onclick="closeEditPlanoModal()" class="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="flex-1 bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition">
+                        Salvar Alterações
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Company Modal -->
     <div id="company-modal" class="modal">
         <div class="bg-white rounded-xl shadow-2xl p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
@@ -761,6 +1104,18 @@ include 'includes/head.php';
                 } else if (target === 'empresas') {
                     document.getElementById('empresas-section').classList.remove('hidden');
                     loadCompanies();
+                } else if (target === 'vagas') {
+                    document.getElementById('vagas-section').classList.remove('hidden');
+                    loadVagas();
+                } else if (target === 'planos') {
+                    document.getElementById('planos-section').classList.remove('hidden');
+                    loadPlanosPendentes();
+                } else if (target === 'gerenciar-planos') {
+                    document.getElementById('gerenciar-planos-section').classList.remove('hidden');
+                    loadEmpresasPlanos();
+                } else if (target === 'relatorios') {
+                    document.getElementById('relatorios-section').classList.remove('hidden');
+                    loadRelatorios();
                 } else if (target === 'configuracoes') {
                     document.getElementById('configuracoes-section').classList.remove('hidden');
                     loadSettings();
@@ -1793,11 +2148,902 @@ include 'includes/head.php';
             }
         }
 
+        // Carregar planos pendentes
+        async function loadPlanosPendentes() {
+            const listDiv = document.getElementById('planosPendentesList');
+            listDiv.innerHTML = '<div class="bg-white rounded-xl shadow-md p-6 text-center"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div><p class="mt-4 text-gray-600">Carregando solicitações...</p></div>';
+            
+            try {
+                const result = await ViggedAPI.listarPlanosPendentes();
+                
+                if (result.success && result.data) {
+                    const planos = result.data;
+                    
+                    // Atualizar badge
+                    const badge = document.getElementById('planosBadge');
+                    if (badge) {
+                        if (planos.length > 0) {
+                            badge.textContent = planos.length;
+                            badge.classList.remove('hidden');
+                        } else {
+                            badge.classList.add('hidden');
+                        }
+                    }
+                    
+                    if (planos.length === 0) {
+                        listDiv.innerHTML = '<div class="bg-white rounded-xl shadow-md p-6 text-center"><p class="text-gray-600">Nenhuma solicitação de plano pendente.</p></div>';
+                        return;
+                    }
+                    
+                    const planNames = {
+                        'essencial': 'Essencial',
+                        'profissional': 'Profissional',
+                        'enterprise': 'Enterprise'
+                    };
+                    
+                    listDiv.innerHTML = planos.map(plano => `
+                        <div class="bg-white rounded-xl shadow-md p-6">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="flex-1">
+                                    <h3 class="text-xl font-bold text-gray-800 mb-2">${plano.nome_fantasia || plano.razao_social}</h3>
+                                    <p class="text-sm text-gray-600">${plano.razao_social}</p>
+                                    <p class="text-sm text-gray-500">CNPJ: ${plano.cnpj}</p>
+                                    <p class="text-sm text-gray-500">Email: ${plano.email_corporativo}</p>
+                                </div>
+                                <div class="text-right">
+                                    <span class="inline-block bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-semibold mb-2">
+                                        ${planNames[plano.plano_solicitado] || plano.plano_solicitado}
+                                    </span>
+                                    <p class="text-lg font-bold text-gray-800">R$ ${parseFloat(plano.valor).toFixed(2)}/mês</p>
+                                </div>
+                            </div>
+                            
+                            <div class="border-t pt-4 mt-4">
+                                <div class="grid md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <p class="text-sm text-gray-600 mb-1">Plano Atual:</p>
+                                        <p class="font-semibold">${planNames[plano.plano_atual] || plano.plano_atual || 'Gratuito'}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-600 mb-1">Solicitado em:</p>
+                                        <p class="font-semibold">${plano.created_at_formatted}</p>
+                                    </div>
+                                </div>
+                                
+                                ${plano.observacoes ? `
+                                    <div class="mb-4">
+                                        <p class="text-sm text-gray-600 mb-1">Observações:</p>
+                                        <p class="text-sm text-gray-800 bg-gray-50 p-3 rounded">${plano.observacoes}</p>
+                                    </div>
+                                ` : ''}
+                                
+                                <div class="flex gap-3">
+                                    <button onclick="aprovarPlano(${plano.id})" class="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
+                                        <i class="fas fa-check mr-2"></i>Aprovar
+                                    </button>
+                                    <button onclick="rejeitarPlano(${plano.id})" class="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">
+                                        <i class="fas fa-times mr-2"></i>Rejeitar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    listDiv.innerHTML = '<div class="bg-white rounded-xl shadow-md p-6 text-center"><p class="text-red-600">Erro ao carregar solicitações: ' + (result.error || 'Erro desconhecido') + '</p></div>';
+                }
+            } catch (error) {
+                console.error('Erro ao carregar planos pendentes:', error);
+                listDiv.innerHTML = '<div class="bg-white rounded-xl shadow-md p-6 text-center"><p class="text-red-600">Erro ao carregar solicitações.</p></div>';
+            }
+        }
+        
+        async function aprovarPlano(requestId) {
+            if (!confirm('Tem certeza que deseja aprovar esta solicitação de plano?')) {
+                return;
+            }
+            
+            try {
+                const result = await ViggedAPI.gerenciarPlano(requestId, 'aprovar');
+                
+                if (result.success) {
+                    alert('Plano aprovado com sucesso!');
+                    loadPlanosPendentes();
+                } else {
+                    alert('Erro ao aprovar plano: ' + (result.error || 'Erro desconhecido'));
+                }
+            } catch (error) {
+                console.error('Erro ao aprovar plano:', error);
+                alert('Erro ao aprovar plano. Tente novamente.');
+            }
+        }
+        
+        async function rejeitarPlano(requestId) {
+            const motivo = prompt('Informe o motivo da rejeição:');
+            
+            if (!motivo || motivo.trim() === '') {
+                alert('O motivo da rejeição é obrigatório.');
+                return;
+            }
+            
+            if (!confirm('Tem certeza que deseja rejeitar esta solicitação de plano?')) {
+                return;
+            }
+            
+            try {
+                const result = await ViggedAPI.gerenciarPlano(requestId, 'rejeitar', motivo.trim());
+                
+                if (result.success) {
+                    alert('Plano rejeitado com sucesso!');
+                    loadPlanosPendentes();
+                } else {
+                    alert('Erro ao rejeitar plano: ' + (result.error || 'Erro desconhecido'));
+                }
+            } catch (error) {
+                console.error('Erro ao rejeitar plano:', error);
+                alert('Erro ao rejeitar plano. Tente novamente.');
+            }
+        }
+
+        // Gerenciar Vagas
+        let currentJobPage = 1;
+        let jobs = [];
+
+        async function loadVagas(status = 'todas', search = '') {
+            const tbody = document.getElementById('jobs-table-body');
+            tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-8 text-center text-gray-500"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div><p class="mt-4">Carregando vagas...</p></td></tr>';
+            
+            try {
+                const params = new URLSearchParams({
+                    action: 'list',
+                    status: status,
+                    page: currentJobPage,
+                    limit: itemsPerPage
+                });
+                
+                if (search) {
+                    params.append('search', search);
+                }
+                
+                const response = await fetch(`api/admin_vagas.php?${params}`);
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    jobs = result.data;
+                    renderJobs();
+                    renderJobPagination(result.pagination);
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-8 text-center text-red-500">Erro ao carregar vagas: ' + (result.error || 'Erro desconhecido') + '</td></tr>';
+                }
+            } catch (error) {
+                console.error('Erro ao carregar vagas:', error);
+                tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-8 text-center text-red-500">Erro ao carregar vagas.</td></tr>';
+            }
+        }
+
+        function renderJobs() {
+            const tbody = document.getElementById('jobs-table-body');
+            tbody.innerHTML = '';
+            
+            if (jobs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-8 text-center text-gray-500">Nenhuma vaga encontrada.</td></tr>';
+                return;
+            }
+            
+            jobs.forEach(job => {
+                const status = job.status || 'ativa';
+                const statusText = status === 'ativa' ? 'Ativa' : status === 'pausada' ? 'Pausada' : 'Encerrada';
+                const statusClass = status === 'ativa' ? 'bg-green-100 text-green-800' : 
+                                   status === 'pausada' ? 'bg-yellow-100 text-yellow-800' : 
+                                   'bg-red-100 text-red-800';
+                const date = job.created_at ? new Date(job.created_at).toLocaleDateString('pt-BR') : '-';
+                const empresaNome = job.nome_fantasia || job.razao_social || 'Empresa';
+                
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4">
+                            <div class="text-sm font-medium text-gray-900">${job.titulo || 'Sem título'}</div>
+                            <div class="text-sm text-gray-500">${(job.descricao || '').substring(0, 50)}...</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${empresaNome}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${job.localizacao || '-'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${job.total_candidaturas || 0}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${job.visualizacoes || 0}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${date}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
+                                ${statusText}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                            <button onclick="viewJob(${job.id})" class="text-blue-600 hover:text-blue-900" title="Ver"><i class="fas fa-eye"></i></button>
+                            <button onclick="editJobStatus(${job.id}, '${status}')" class="text-green-600 hover:text-green-900" title="Alterar Status"><i class="fas fa-edit"></i></button>
+                            <button onclick="deleteJob(${job.id})" class="text-red-600 hover:text-red-900" title="Excluir"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            document.getElementById('jobs-showing-start').textContent = (currentJobPage - 1) * itemsPerPage + 1;
+            document.getElementById('jobs-showing-end').textContent = Math.min(currentJobPage * itemsPerPage, jobs.length);
+            document.getElementById('jobs-total').textContent = jobs.length;
+        }
+
+        function renderJobPagination(pagination) {
+            const paginationDiv = document.getElementById('jobs-pagination');
+            paginationDiv.innerHTML = '';
+            
+            if (!pagination || pagination.pages <= 1) return;
+            
+            const totalPages = pagination.pages;
+            
+            paginationDiv.innerHTML += `
+                <button onclick="changeJobPage(${currentJobPage - 1})" 
+                        ${currentJobPage === 1 ? 'disabled' : ''} 
+                        class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Anterior
+                </button>
+            `;
+            
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentJobPage - 1 && i <= currentJobPage + 1)) {
+                    const activeClass = i === currentJobPage ? 'bg-purple-600 text-white' : 'border border-gray-300 hover:bg-gray-50';
+                    paginationDiv.innerHTML += `
+                        <button onclick="changeJobPage(${i})" class="px-4 py-2 ${activeClass} rounded-lg">
+                            ${i}
+                        </button>
+                    `;
+                } else if (i === currentJobPage - 2 || i === currentJobPage + 2) {
+                    paginationDiv.innerHTML += '<span class="px-2">...</span>';
+                }
+            }
+            
+            paginationDiv.innerHTML += `
+                <button onclick="changeJobPage(${currentJobPage + 1})" 
+                        ${currentJobPage === totalPages ? 'disabled' : ''} 
+                        class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Próximo
+                </button>
+            `;
+        }
+
+        async function changeJobPage(page) {
+            currentJobPage = page;
+            const status = document.getElementById('job-status-filter')?.value || 'todas';
+            const search = document.getElementById('job-search')?.value || '';
+            await loadVagas(status, search);
+        }
+
+        async function filterJobs() {
+            currentJobPage = 1;
+            const status = document.getElementById('job-status-filter')?.value || 'todas';
+            const search = document.getElementById('job-search')?.value || '';
+            await loadVagas(status, search);
+        }
+
+        function viewJob(jobId) {
+            const job = jobs.find(j => j.id === jobId);
+            if (job) {
+                window.open(`detalhes-vaga.php?id=${jobId}`, '_blank');
+            }
+        }
+
+        async function editJobStatus(jobId, currentStatus) {
+            const statuses = ['ativa', 'pausada', 'encerrada'];
+            const statusTexts = { 'ativa': 'Ativa', 'pausada': 'Pausada', 'encerrada': 'Encerrada' };
+            const currentIndex = statuses.indexOf(currentStatus);
+            const nextIndex = (currentIndex + 1) % statuses.length;
+            const newStatus = statuses[nextIndex];
+            
+            if (!confirm(`Deseja alterar o status da vaga para "${statusTexts[newStatus]}"?`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('api/admin_vagas.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'update_status',
+                        job_id: jobId,
+                        status: newStatus
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Status da vaga atualizado com sucesso!');
+                    await loadVagas();
+                } else {
+                    alert('Erro ao atualizar status: ' + (result.error || 'Erro desconhecido'));
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar status:', error);
+                alert('Erro ao atualizar status. Tente novamente.');
+            }
+        }
+
+        async function deleteJob(jobId) {
+            if (!confirm('Tem certeza que deseja excluir esta vaga? Esta ação não pode ser desfeita.')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('api/admin_vagas.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'delete',
+                        job_id: jobId
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Vaga excluída com sucesso!');
+                    await loadVagas();
+                } else {
+                    alert('Erro ao excluir vaga: ' + (result.error || 'Erro desconhecido'));
+                }
+            } catch (error) {
+                console.error('Erro ao excluir vaga:', error);
+                alert('Erro ao excluir vaga. Tente novamente.');
+            }
+        }
+
+        function exportJobs() {
+            alert('Funcionalidade de exportação será implementada em breve.');
+        }
+
+        // Relatórios
+        async function loadRelatorios() {
+            // Carregar dados iniciais do dashboard
+            if (stats) {
+                updateRelatorioCards();
+                renderRelatorioGraficos();
+                await loadRelatorioPlanos();
+            } else {
+                await loadStats();
+            }
+        }
+
+        async function loadRelatorioPlanos() {
+            try {
+                const response = await fetch('api/admin_planos.php?action=list&limit=1000');
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    const empresas = result.data;
+                    
+                    // Contar planos
+                    const planosCount = {
+                        'gratuito': 0,
+                        'essencial': 0,
+                        'profissional': 0,
+                        'enterprise': 0
+                    };
+                    
+                    const statusCount = {
+                        'ativo': 0,
+                        'pendente': 0,
+                        'cancelado': 0,
+                        'expirado': 0
+                    };
+                    
+                    empresas.forEach(empresa => {
+                        const plano = empresa.plano || 'gratuito';
+                        const status = empresa.plano_status || 'ativo';
+                        
+                        if (planosCount.hasOwnProperty(plano)) {
+                            planosCount[plano]++;
+                        }
+                        if (statusCount.hasOwnProperty(status)) {
+                            statusCount[status]++;
+                        }
+                    });
+                    
+                    const planNames = {
+                        'gratuito': 'Gratuito',
+                        'essencial': 'Essencial',
+                        'profissional': 'Profissional',
+                        'enterprise': 'Enterprise'
+                    };
+                    
+                    let html = `
+                        <div class="grid md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <h4 class="font-bold text-gray-800 mb-4">Distribuição por Plano</h4>
+                                <div class="space-y-3">
+                    `;
+                    
+                    Object.entries(planosCount).forEach(([plano, total]) => {
+                        const totalEmpresas = empresas.length || 1;
+                        const percentage = (total / totalEmpresas * 100).toFixed(1);
+                        const color = plano === 'gratuito' ? 'bg-gray-500' :
+                                     plano === 'essencial' ? 'bg-blue-500' :
+                                     plano === 'profissional' ? 'bg-purple-500' :
+                                     'bg-yellow-500';
+                        
+                        html += `
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="text-gray-700">${planNames[plano]}</span>
+                                    <span class="text-gray-600">${total} (${percentage}%)</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-3">
+                                    <div class="${color} h-3 rounded-full" style="width: ${percentage}%"></div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += `
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-800 mb-4">Status dos Planos</h4>
+                                <div class="space-y-3">
+                    `;
+                    
+                    Object.entries(statusCount).forEach(([status, total]) => {
+                        const totalEmpresas = empresas.length || 1;
+                        const percentage = (total / totalEmpresas * 100).toFixed(1);
+                        const statusText = status === 'ativo' ? 'Ativos' :
+                                          status === 'pendente' ? 'Pendentes' :
+                                          status === 'cancelado' ? 'Cancelados' : 'Expirados';
+                        const color = status === 'ativo' ? 'bg-green-500' :
+                                     status === 'pendente' ? 'bg-yellow-500' :
+                                     status === 'cancelado' ? 'bg-red-500' : 'bg-gray-500';
+                        
+                        html += `
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="text-gray-700">${statusText}</span>
+                                    <span class="text-gray-600">${total} (${percentage}%)</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-3">
+                                    <div class="${color} h-3 rounded-full" style="width: ${percentage}%"></div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += `
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-6">
+                            <h4 class="font-bold text-gray-800 mb-4">Resumo</h4>
+                            <div class="grid md:grid-cols-4 gap-4">
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <p class="text-sm text-gray-600">Total de Empresas</p>
+                                    <p class="text-2xl font-bold text-gray-800">${empresas.length}</p>
+                                </div>
+                                <div class="bg-blue-50 p-4 rounded-lg">
+                                    <p class="text-sm text-gray-600">Com Plano Pago</p>
+                                    <p class="text-2xl font-bold text-blue-600">${planosCount.essencial + planosCount.profissional + planosCount.enterprise}</p>
+                                </div>
+                                <div class="bg-green-50 p-4 rounded-lg">
+                                    <p class="text-sm text-gray-600">Planos Ativos</p>
+                                    <p class="text-2xl font-bold text-green-600">${statusCount.ativo}</p>
+                                </div>
+                                <div class="bg-yellow-50 p-4 rounded-lg">
+                                    <p class="text-sm text-gray-600">Pendentes</p>
+                                    <p class="text-2xl font-bold text-yellow-600">${statusCount.pendente}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.getElementById('relatorio-planos').innerHTML = html;
+                } else {
+                    document.getElementById('relatorio-planos').innerHTML = '<p class="text-red-500 text-center py-8">Erro ao carregar relatório de planos.</p>';
+                }
+            } catch (error) {
+                console.error('Erro ao carregar relatório de planos:', error);
+                document.getElementById('relatorio-planos').innerHTML = '<p class="text-red-500 text-center py-8">Erro ao carregar relatório de planos.</p>';
+            }
+        }
+
+        function updateRelatorioCards() {
+            if (!stats) return;
+            
+            document.getElementById('relatorio-total-vagas').textContent = formatNumber(stats.total_vagas || 0);
+            document.getElementById('relatorio-total-candidaturas').textContent = formatNumber(stats.total_candidaturas || 0);
+            document.getElementById('relatorio-taxa-conversao').textContent = (stats.taxa_conversao || 0).toFixed(1) + '%';
+            document.getElementById('relatorio-taxa-aprovacao').textContent = (stats.taxa_aprovacao || 0).toFixed(1) + '%';
+        }
+
+        function renderRelatorioGraficos() {
+            if (!stats) return;
+            
+            // Gráfico de vagas por status
+            const vagasStatus = stats.vagas_por_status || {};
+            const vagasStatusDiv = document.getElementById('grafico-vagas-status');
+            let html = '<div class="space-y-3">';
+            
+            Object.entries(vagasStatus).forEach(([status, total]) => {
+                const statusText = status === 'ativa' ? 'Ativas' : status === 'pausada' ? 'Pausadas' : 'Encerradas';
+                const color = status === 'ativa' ? 'bg-green-500' : status === 'pausada' ? 'bg-yellow-500' : 'bg-red-500';
+                const totalVagas = stats.total_vagas || 1;
+                const percentage = (total / totalVagas * 100).toFixed(1);
+                
+                html += `
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-gray-700">${statusText}</span>
+                            <span class="text-gray-600">${total} (${percentage}%)</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-3">
+                            <div class="${color} h-3 rounded-full" style="width: ${percentage}%"></div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            vagasStatusDiv.innerHTML = html;
+            
+            // Gráfico de candidaturas por status
+            const candidaturasStatus = stats.candidaturas_por_status || {};
+            const candidaturasStatusDiv = document.getElementById('grafico-candidaturas-status');
+            html = '<div class="space-y-3">';
+            
+            Object.entries(candidaturasStatus).forEach(([status, total]) => {
+                const statusText = status === 'pendente' ? 'Pendentes' : 
+                                 status === 'em_analise' ? 'Em Análise' :
+                                 status === 'aprovada' ? 'Aprovadas' :
+                                 status === 'rejeitada' ? 'Rejeitadas' : 'Canceladas';
+                const color = status === 'aprovada' ? 'bg-green-500' : 
+                             status === 'rejeitada' ? 'bg-red-500' :
+                             status === 'pendente' ? 'bg-yellow-500' :
+                             status === 'em_analise' ? 'bg-blue-500' : 'bg-gray-500';
+                const totalCandidaturas = stats.total_candidaturas || 1;
+                const percentage = (total / totalCandidaturas * 100).toFixed(1);
+                
+                html += `
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-gray-700">${statusText}</span>
+                            <span class="text-gray-600">${total} (${percentage}%)</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-3">
+                            <div class="${color} h-3 rounded-full" style="width: ${percentage}%"></div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            candidaturasStatusDiv.innerHTML = html;
+        }
+
+        async function gerarRelatorio() {
+            const dataInicio = document.getElementById('relatorio-data-inicio').value;
+            const dataFim = document.getElementById('relatorio-data-fim').value;
+            const tipo = document.getElementById('relatorio-tipo').value;
+            
+            const detalhesDiv = document.getElementById('relatorio-detalhes');
+            detalhesDiv.innerHTML = '<div class="flex items-center justify-center py-8"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div></div>';
+            
+            // Por enquanto, mostrar dados do dashboard
+            // Em produção, isso chamaria uma API específica de relatórios
+            setTimeout(() => {
+                let html = '<div class="space-y-4">';
+                html += '<h4 class="font-bold text-gray-800 mb-4">Resumo do Período</h4>';
+                
+                if (stats) {
+                    html += `
+                        <div class="grid md:grid-cols-3 gap-4">
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <p class="text-sm text-gray-600">Total de Vagas</p>
+                                <p class="text-2xl font-bold text-gray-800">${stats.total_vagas || 0}</p>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <p class="text-sm text-gray-600">Total de Candidaturas</p>
+                                <p class="text-2xl font-bold text-gray-800">${stats.total_candidaturas || 0}</p>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <p class="text-sm text-gray-600">Taxa de Conversão</p>
+                                <p class="text-2xl font-bold text-gray-800">${(stats.taxa_conversao || 0).toFixed(1)}%</p>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                html += '<p class="text-sm text-gray-500 mt-4">Relatório completo será gerado com base nos filtros selecionados.</p>';
+                html += '</div>';
+                
+                detalhesDiv.innerHTML = html;
+            }, 500);
+        }
+
+        function exportRelatorio(format) {
+            alert(`Exportação em formato ${format.toUpperCase()} será implementada em breve.`);
+        }
+
+        // Gerenciar Planos das Empresas
+        let currentEmpresaPlanoPage = 1;
+        let empresasPlanos = [];
+
+        async function loadEmpresasPlanos(plano = 'todas', status = 'todas', search = '') {
+            const tbody = document.getElementById('empresas-planos-table-body');
+            tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-8 text-center text-gray-500"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div><p class="mt-4">Carregando empresas...</p></td></tr>';
+            
+            try {
+                const params = new URLSearchParams({
+                    action: 'list',
+                    plano: plano,
+                    status: status,
+                    page: currentEmpresaPlanoPage,
+                    limit: itemsPerPage
+                });
+                
+                if (search) {
+                    params.append('search', search);
+                }
+                
+                const response = await fetch(`api/admin_planos.php?${params}`);
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    empresasPlanos = result.data;
+                    renderEmpresasPlanos();
+                    renderEmpresasPlanosPagination(result.pagination);
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-8 text-center text-red-500">Erro ao carregar empresas: ' + (result.error || 'Erro desconhecido') + '</td></tr>';
+                }
+            } catch (error) {
+                console.error('Erro ao carregar empresas:', error);
+                tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-8 text-center text-red-500">Erro ao carregar empresas.</td></tr>';
+            }
+        }
+
+        function renderEmpresasPlanos() {
+            const tbody = document.getElementById('empresas-planos-table-body');
+            tbody.innerHTML = '';
+            
+            if (empresasPlanos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-8 text-center text-gray-500">Nenhuma empresa encontrada.</td></tr>';
+                return;
+            }
+            
+            const planNames = {
+                'gratuito': 'Gratuito',
+                'essencial': 'Essencial',
+                'profissional': 'Profissional',
+                'enterprise': 'Enterprise'
+            };
+            
+            empresasPlanos.forEach(empresa => {
+                const empresaNome = empresa.nome_fantasia || empresa.razao_social || 'Sem nome';
+                const plano = empresa.plano || 'gratuito';
+                const planoStatus = empresa.plano_status || 'ativo';
+                
+                const planoBadge = plano === 'gratuito' ? 'bg-gray-100 text-gray-800' :
+                                 plano === 'essencial' ? 'bg-blue-100 text-blue-800' :
+                                 plano === 'profissional' ? 'bg-purple-100 text-purple-800' :
+                                 'bg-yellow-100 text-yellow-800';
+                
+                const statusBadge = planoStatus === 'ativo' ? 'bg-green-100 text-green-800' :
+                                  planoStatus === 'pendente' ? 'bg-yellow-100 text-yellow-800' :
+                                  planoStatus === 'cancelado' ? 'bg-red-100 text-red-800' :
+                                  'bg-gray-100 text-gray-800';
+                
+                const temSolicitacaoPendente = empresa.solicitacoes_pendentes > 0;
+                
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4">
+                            <div class="text-sm font-medium text-gray-900">${empresaNome}</div>
+                            <div class="text-sm text-gray-500">${empresa.email_corporativo || ''}</div>
+                            ${temSolicitacaoPendente ? '<span class="inline-block mt-1 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">Solicitação pendente</span>' : ''}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${empresa.cnpj || '-'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${planoBadge}">
+                                ${planNames[plano] || plano}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusBadge}">
+                                ${planoStatus === 'ativo' ? 'Ativo' : planoStatus === 'pendente' ? 'Pendente' : planoStatus === 'cancelado' ? 'Cancelado' : planoStatus}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <span class="font-semibold">${empresa.vagas_ativas || 0}</span> / ${empresa.total_vagas || 0}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${empresa.total_candidaturas || 0}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                            <button onclick="openEditPlanoModal(${empresa.id})" class="text-blue-600 hover:text-blue-900" title="Editar Plano">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            ${plano !== 'gratuito' ? `
+                                <button onclick="removePlano(${empresa.id})" class="text-red-600 hover:text-red-900" title="Remover Plano">
+                                    <i class="fas fa-times-circle"></i>
+                                </button>
+                            ` : ''}
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            document.getElementById('empresas-planos-showing-start').textContent = (currentEmpresaPlanoPage - 1) * itemsPerPage + 1;
+            document.getElementById('empresas-planos-showing-end').textContent = Math.min(currentEmpresaPlanoPage * itemsPerPage, empresasPlanos.length);
+            document.getElementById('empresas-planos-total').textContent = empresasPlanos.length;
+        }
+
+        function renderEmpresasPlanosPagination(pagination) {
+            const paginationDiv = document.getElementById('empresas-planos-pagination');
+            paginationDiv.innerHTML = '';
+            
+            if (!pagination || pagination.pages <= 1) return;
+            
+            const totalPages = pagination.pages;
+            
+            paginationDiv.innerHTML += `
+                <button onclick="changeEmpresaPlanoPage(${currentEmpresaPlanoPage - 1})" 
+                        ${currentEmpresaPlanoPage === 1 ? 'disabled' : ''} 
+                        class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Anterior
+                </button>
+            `;
+            
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentEmpresaPlanoPage - 1 && i <= currentEmpresaPlanoPage + 1)) {
+                    const activeClass = i === currentEmpresaPlanoPage ? 'bg-purple-600 text-white' : 'border border-gray-300 hover:bg-gray-50';
+                    paginationDiv.innerHTML += `
+                        <button onclick="changeEmpresaPlanoPage(${i})" class="px-4 py-2 ${activeClass} rounded-lg">
+                            ${i}
+                        </button>
+                    `;
+                } else if (i === currentEmpresaPlanoPage - 2 || i === currentEmpresaPlanoPage + 2) {
+                    paginationDiv.innerHTML += '<span class="px-2">...</span>';
+                }
+            }
+            
+            paginationDiv.innerHTML += `
+                <button onclick="changeEmpresaPlanoPage(${currentEmpresaPlanoPage + 1})" 
+                        ${currentEmpresaPlanoPage === totalPages ? 'disabled' : ''} 
+                        class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Próximo
+                </button>
+            `;
+        }
+
+        async function changeEmpresaPlanoPage(page) {
+            currentEmpresaPlanoPage = page;
+            const plano = document.getElementById('empresa-plano-filter')?.value || 'todas';
+            const status = document.getElementById('empresa-plano-status-filter')?.value || 'todas';
+            const search = document.getElementById('empresa-plano-search')?.value || '';
+            await loadEmpresasPlanos(plano, status, search);
+        }
+
+        async function filterEmpresasPlanos() {
+            currentEmpresaPlanoPage = 1;
+            const plano = document.getElementById('empresa-plano-filter')?.value || 'todas';
+            const status = document.getElementById('empresa-plano-status-filter')?.value || 'todas';
+            const search = document.getElementById('empresa-plano-search')?.value || '';
+            await loadEmpresasPlanos(plano, status, search);
+        }
+
+        function openEditPlanoModal(companyId) {
+            const empresa = empresasPlanos.find(e => e.id === companyId);
+            if (!empresa) {
+                alert('Empresa não encontrada');
+                return;
+            }
+            
+            const modal = document.getElementById('edit-plano-modal');
+            document.getElementById('edit-plano-company-id').value = companyId;
+            document.getElementById('edit-plano-empresa-nome').textContent = empresa.nome_fantasia || empresa.razao_social;
+            document.getElementById('edit-plano-empresa-cnpj').textContent = 'CNPJ: ' + (empresa.cnpj || '-');
+            document.getElementById('edit-plano-plano').value = empresa.plano || 'gratuito';
+            document.getElementById('edit-plano-status').value = empresa.plano_status || 'ativo';
+            
+            modal.classList.add('active');
+        }
+
+        function closeEditPlanoModal() {
+            document.getElementById('edit-plano-modal').classList.remove('active');
+            document.getElementById('edit-plano-form').reset();
+        }
+
+        async function savePlano(event) {
+            event.preventDefault();
+            
+            const companyId = parseInt(document.getElementById('edit-plano-company-id').value);
+            const novoPlano = document.getElementById('edit-plano-plano').value;
+            const novoStatus = document.getElementById('edit-plano-status').value;
+            
+            await updatePlano(companyId, novoPlano, novoStatus);
+            closeEditPlanoModal();
+        }
+
+        async function updatePlano(companyId, novoPlano, novoStatus) {
+            try {
+                const response = await fetch('api/admin_planos.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'update_plano',
+                        company_id: companyId,
+                        plano: novoPlano,
+                        plano_status: novoStatus
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Plano atualizado com sucesso!');
+                    await loadEmpresasPlanos();
+                } else {
+                    alert('Erro ao atualizar plano: ' + (result.error || 'Erro desconhecido'));
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar plano:', error);
+                alert('Erro ao atualizar plano. Tente novamente.');
+            }
+        }
+
+        async function removePlano(companyId) {
+            const empresa = empresasPlanos.find(e => e.id === companyId);
+            if (!empresa) {
+                alert('Empresa não encontrada');
+                return;
+            }
+            
+            const planNames = {
+                'gratuito': 'Gratuito',
+                'essencial': 'Essencial',
+                'profissional': 'Profissional',
+                'enterprise': 'Enterprise'
+            };
+            
+            if (!confirm(`Tem certeza que deseja remover o plano "${planNames[empresa.plano]}" da empresa "${empresa.nome_fantasia || empresa.razao_social}"?\n\nA empresa voltará para o plano gratuito.`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('api/admin_planos.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'remove_plano',
+                        company_id: companyId
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Plano removido com sucesso! A empresa voltou para o plano gratuito.');
+                    await loadEmpresasPlanos();
+                } else {
+                    alert('Erro ao remover plano: ' + (result.error || 'Erro desconhecido'));
+                }
+            } catch (error) {
+                console.error('Erro ao remover plano:', error);
+                alert('Erro ao remover plano. Tente novamente.');
+            }
+        }
+
         // Initialize dashboard on load
         (async function() {
             await loadStats();
             await loadUsers();
             await loadCompanies();
+            await loadPlanosPendentes();
         })();
     </script>
 <?php

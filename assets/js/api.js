@@ -582,6 +582,110 @@ async function buscarCep(cep) {
     }
 }
 
+/**
+ * Solicitar plano
+ * @param {string} plano Nome do plano (essencial, profissional, enterprise)
+ * @param {number} valor Valor do plano
+ * @param {string} observacoes Observações opcionais
+ * @returns {Promise} Promise com resultado da solicitação
+ */
+async function solicitarPlano(plano, valor, observacoes = '') {
+    try {
+        const response = await fetch(`${API_BASE_URL}/solicitar_plano.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                plano: plano.toLowerCase(),
+                valor: valor,
+                observacoes: observacoes
+            })
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Erro HTTP:', response.status, errorText);
+            let errorData;
+            try {
+                errorData = JSON.parse(errorText);
+            } catch (e) {
+                errorData = { error: errorText || `Erro ${response.status}` };
+            }
+            return { success: false, error: errorData.error || 'Erro ao solicitar plano' };
+        }
+        
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Erro ao solicitar plano:', error);
+        return { success: false, error: 'Erro ao solicitar plano: ' + error.message };
+    }
+}
+
+/**
+ * Listar planos pendentes (apenas admin)
+ * @returns {Promise} Promise com lista de planos pendentes
+ */
+async function listarPlanosPendentes() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/planos_pendentes.php`);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Erro HTTP:', response.status, errorText);
+            return { success: false, error: `Erro ao listar planos: ${response.status}` };
+        }
+        
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Erro ao listar planos pendentes:', error);
+        return { success: false, error: 'Erro ao listar planos pendentes' };
+    }
+}
+
+/**
+ * Aprovar ou rejeitar plano (apenas admin)
+ * @param {number} requestId ID da solicitação
+ * @param {string} acao 'aprovar' ou 'rejeitar'
+ * @param {string} motivoRejeicao Motivo da rejeição (obrigatório se rejeitar)
+ * @returns {Promise} Promise com resultado da ação
+ */
+async function gerenciarPlano(requestId, acao, motivoRejeicao = '') {
+    try {
+        const response = await fetch(`${API_BASE_URL}/gerenciar_plano.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                request_id: requestId,
+                acao: acao,
+                motivo_rejeicao: motivoRejeicao
+            })
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Erro HTTP:', response.status, errorText);
+            let errorData;
+            try {
+                errorData = JSON.parse(errorText);
+            } catch (e) {
+                errorData = { error: errorText || `Erro ${response.status}` };
+            }
+            return { success: false, error: errorData.error || 'Erro ao processar solicitação' };
+        }
+        
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Erro ao gerenciar plano:', error);
+        return { success: false, error: 'Erro ao processar solicitação: ' + error.message };
+    }
+}
+
 // Exportar funções para uso global
 window.ViggedAPI = {
     buscarVagas,
@@ -600,6 +704,11 @@ window.ViggedAPI = {
     buscarCep,
     gerenciarCandidatura,
     obterEstatisticas,
+    
+    // Planos
+    solicitarPlano,
+    listarPlanosPendentes,
+    gerenciarPlano,
     
     // Configurações
     obterConfiguracoes,

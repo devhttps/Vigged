@@ -66,6 +66,12 @@ unset($_SESSION['perfil_errors'], $_SESSION['perfil_success']);
                             <span id="planName" class="font-semibold text-purple-600">Gratuito</span>
                         </div>
                         <div class="flex items-center justify-between">
+                            <span class="text-gray-600">Status:</span>
+                            <span id="planStatus" class="text-sm px-2 py-1 rounded">
+                                <span class="bg-green-100 text-green-800">Ativo</span>
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between">
                             <span class="text-gray-600">Vagas ativas:</span>
                             <span class="font-semibold">0/2</span>
                         </div>
@@ -73,6 +79,12 @@ unset($_SESSION['perfil_errors'], $_SESSION['perfil_success']);
                             <span class="text-gray-600">Candidatos:</span>
                             <span class="font-semibold">0/50</span>
                         </div>
+                    </div>
+                    <div id="planPendingMessage" class="hidden mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <p class="text-sm text-yellow-800">
+                            <i class="fas fa-clock mr-2"></i>
+                            Você possui uma solicitação de plano pendente de aprovação.
+                        </p>
                     </div>
                     <button onclick="openPlansModal()" class="w-full mt-4 bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition">
                         <i class="fas fa-crown mr-2"></i>Fazer Upgrade
@@ -534,6 +546,25 @@ include 'includes/footer.php';
                 'enterprise': 'Enterprise'
             };
             document.getElementById('planName').textContent = planNames[companyData.plano] || 'Gratuito';
+            
+            // Status do plano
+            const planStatus = companyData.plano_status || 'ativo';
+            const statusElement = document.getElementById('planStatus');
+            const pendingMessage = document.getElementById('planPendingMessage');
+            
+            if (planStatus === 'pendente') {
+                statusElement.innerHTML = '<span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-semibold">Pendente</span>';
+                if (pendingMessage) pendingMessage.classList.remove('hidden');
+            } else if (planStatus === 'ativo') {
+                statusElement.innerHTML = '<span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-semibold">Ativo</span>';
+                if (pendingMessage) pendingMessage.classList.add('hidden');
+            } else if (planStatus === 'cancelado') {
+                statusElement.innerHTML = '<span class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-semibold">Cancelado</span>';
+                if (pendingMessage) pendingMessage.classList.add('hidden');
+            } else {
+                statusElement.innerHTML = '<span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-semibold">' + planStatus + '</span>';
+                if (pendingMessage) pendingMessage.classList.add('hidden');
+            }
             
             // Estatísticas
             document.getElementById('vagasAtivas').textContent = companyData.vagas_ativas || 0;
@@ -1102,12 +1133,52 @@ include 'includes/footer.php';
             }
         });
 
-        function subscribePlan(planName, price) {
-            if (confirm(`Deseja assinar o Plano ${planName} por R$${price}/mês?`)) {
-                document.getElementById('planName').textContent = planName;
-                localStorage.setItem('companyPlan', JSON.stringify({ name: planName, price: price }));
-                closePlansModal();
-                alert(`Plano ${planName} assinado com sucesso! Você será redirecionado para o pagamento.`);
+        async function subscribePlan(planName, price) {
+            if (confirm(`Deseja solicitar o Plano ${planName} por R$${price}/mês?\n\nSua solicitação será enviada para aprovação do administrador.`)) {
+                try {
+                    // Converter nome do plano para formato do banco
+                    const planMap = {
+                        'Essencial': 'essencial',
+                        'Profissional': 'profissional',
+                        'Enterprise': 'enterprise'
+                    };
+                    
+                    const planoSlug = planMap[planName] || planName.toLowerCase();
+                    
+                    console.log('Solicitando plano:', { plano: planoSlug, valor: price });
+                    
+                    // Verificar se a função existe
+                    if (!window.ViggedAPI || !window.ViggedAPI.solicitarPlano) {
+                        alert('Erro: Função de solicitar plano não encontrada. Recarregue a página.');
+                        console.error('ViggedAPI.solicitarPlano não encontrada');
+                        return;
+                    }
+                    
+                    // Enviar solicitação
+                    const result = await ViggedAPI.solicitarPlano(planoSlug, price);
+                    
+                    console.log('Resultado da solicitação:', result);
+                    
+                    if (result.success) {
+                        closePlansModal();
+                        alert(`Solicitação do Plano ${planName} enviada com sucesso!\n\nAguarde a aprovação do administrador. Você será notificado quando o plano for aprovado.`);
+                        
+                        // Recarregar dados da empresa para atualizar status
+                        if (typeof loadCompanyData === 'function') {
+                            loadCompanyData();
+                        } else {
+                            location.reload();
+                        }
+                    } else {
+                        const errorMsg = result.error || 'Erro desconhecido';
+                        const details = result.details ? '\n\nDetalhes: ' + result.details : '';
+                        alert('Erro ao solicitar plano: ' + errorMsg + details);
+                        console.error('Erro detalhado:', result);
+                    }
+                } catch (error) {
+                    console.error('Erro ao solicitar plano:', error);
+                    alert('Erro ao solicitar plano: ' + (error.message || 'Erro desconhecido') + '\n\nVerifique o console para mais detalhes.');
+                }
             }
         }
 
