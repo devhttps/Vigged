@@ -76,18 +76,19 @@ include 'includes/nav.php';
                         >
                     </div>
 
-                    <div>
-                        <label for="data_fundacao" class="block text-sm font-medium text-gray-700 mb-2">
-                            Data de Fundação
-                        </label>
-                        <input 
-                            type="text" 
-                            id="data_fundacao" 
-                            name="data_fundacao" 
-                            placeholder="DD/MM/AAAA"
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        >
-                    </div>
+<div>
+    <label for="data_fundacao" class="block text-sm font-medium text-gray-700 mb-2">
+        Data de Fundação
+    </label>
+
+    <input 
+        type="date"
+        id="data_fundacao"
+        name="data_fundacao"
+        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+    >
+</div>
+
 
                     <div>
                         <label for="porte_empresa" class="block text-sm font-medium text-gray-700 mb-2">

@@ -26,11 +26,13 @@ $navType = isset($navType) ? $navType : ($isAuthenticated ? 'authenticated' : 'p
 $currentPage = basename($_SERVER['PHP_SELF']);
 ?>
 <!-- Navigation -->
-<nav class="bg-purple-600 text-white <?php echo $navType === 'authenticated' ? '' : 'h-16'; ?>">
-    <div class="max-w-7xl mx-auto px-4 <?php echo $navType === 'authenticated' ? 'sm:px-6 lg:px-8' : ''; ?> <?php echo $navType === 'authenticated' ? '' : 'h-full'; ?> flex items-center justify-between">
-        <div class="flex items-center <?php echo $navType === 'authenticated' ? 'space-x-8' : 'space-x-8'; ?>">
+<!-- Navigation -->
+<nav class="bg-purple-600 text-white h-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
+        <div class="flex items-center space-x-8">
             <a href="index.php" class="text-2xl font-bold">Vigged</a>
-            <div class="hidden md:flex space-x-6 ml-4">
+
+            <div class="hidden md:flex space-x-6">
                 <a href="index.php" class="hover:text-purple-200 transition <?php echo $currentPage === 'index.php' ? 'text-purple-200 font-semibold' : ''; ?>">Início</a>
                 <a href="vagas.php" class="hover:text-purple-200 transition <?php echo $currentPage === 'vagas.php' ? 'text-purple-200 font-semibold' : ''; ?>">Vagas</a>
                 <a href="empresas.php" class="hover:text-purple-200 transition <?php echo $currentPage === 'empresas.php' ? 'text-purple-200 font-semibold' : ''; ?>">Empresas</a>
@@ -82,7 +84,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
             <?php else: ?>
                 <!-- Usuário não autenticado -->
                 <a href="login.php" class="px-4 py-2 border border-white rounded-lg hover:bg-white hover:text-purple-600 transition">Login</a>
-                <a href="pre-cadastro.php" class="px-4 py-2 bg-white text-purple-600 rounded-lg hover:bg-purple-50 transition">Cadastrar-se</a>
+                <a href="login.php" class="px-4 py-2 bg-white text-purple-600 rounded-lg hover:bg-purple-50 transition">Criar Conta</a>
             <?php endif; ?>
         </div>
     </div>

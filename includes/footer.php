@@ -58,7 +58,7 @@ $copyrightClass = $footerStyle === 'dark' ? 'text-gray-400' : 'text-purple-200';
                     <li><a href="suporte.php" class="hover:text-white transition">Contato</a></li>
                     <li><a href="sobre-nos.php" class="hover:text-white transition">Sobre Nós</a></li>
                     <li><a href="#" class="hover:text-white transition">FAQ</a></li>
-                    <li><a href="#" class="hover:text-white transition">Termos de Uso</a></li>
+                    <li><a href="termos.php" class="hover:text-white transition">Termos de Uso</a></li>
                 </ul>
             </div>
         </div>
