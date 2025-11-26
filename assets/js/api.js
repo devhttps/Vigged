@@ -17,6 +17,7 @@ async function buscarVagas(filters = {}) {
     if (filters.localizacao) params.append('localizacao', filters.localizacao);
     if (filters.tipo_contrato) params.append('tipo_contrato', filters.tipo_contrato);
     if (filters.destacada !== undefined) params.append('destacada', filters.destacada ? 1 : 0);
+    if (filters.empresa) params.append('empresa', filters.empresa);
     if (filters.page) params.append('page', filters.page);
     if (filters.limit) params.append('limit', filters.limit);
     

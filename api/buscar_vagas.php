@@ -23,6 +23,7 @@ $search = isset($_GET['q']) ? trim($_GET['q']) : '';
 $localizacao = isset($_GET['localizacao']) ? trim($_GET['localizacao']) : '';
 $tipo_contrato = isset($_GET['tipo_contrato']) ? trim($_GET['tipo_contrato']) : '';
 $destacada = isset($_GET['destacada']) ? (int)$_GET['destacada'] : null;
+$empresa = isset($_GET['empresa']) ? (int)$_GET['empresa'] : null;
 $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 $limit = isset($_GET['limit']) ? min(50, max(1, (int)$_GET['limit'])) : 10;
 $offset = ($page - 1) * $limit;
@@ -63,6 +64,12 @@ try {
     if ($destacada !== null) {
         $where[] = "j.destacada = :destacada";
         $params[':destacada'] = $destacada;
+    }
+    
+    // Filtro por empresa
+    if ($empresa !== null && $empresa > 0) {
+        $where[] = "j.company_id = :empresa";
+        $params[':empresa'] = $empresa;
     }
     
     $whereClause = implode(' AND ', $where);

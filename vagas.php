@@ -95,19 +95,36 @@ include 'includes/footer.php';
 ?>
     <script src="assets/js/api.js"></script>
     <script>
+        // Definir BASE_URL se não estiver definido
+        const BASE_URL = '<?php echo BASE_URL; ?>';
+        
         let allJobs = [];
         let displayedJobs = 3;
         let currentPage = 1;
         let currentFilters = {};
 
+        // Verificar se há filtro de empresa na URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const empresaId = urlParams.get('empresa');
+        
         // Load featured jobs from API
         async function loadFeaturedJobs() {
             try {
-                // Primeiro, tentar buscar todas as vagas ativas (não apenas destacadas)
-                const filters = {
+                // Se houver filtro de empresa, buscar vagas dessa empresa
+                let filters = {
                     limit: 20,
                     page: 1
                 };
+                
+                // Se tiver empresaId na URL, adicionar filtro
+                if (empresaId) {
+                    filters.empresa = empresaId;
+                    // Atualizar título da seção
+                    const sectionTitle = document.querySelector('#featuredJobs').parentElement.querySelector('h2');
+                    if (sectionTitle) {
+                        sectionTitle.textContent = 'Vagas da Empresa';
+                    }
+                }
                 
                 const response = await buscarVagas(filters);
                 console.log('Resposta da API:', response);
@@ -117,9 +134,9 @@ include 'includes/footer.php';
                     allJobs = Array.isArray(response.data) ? response.data : [];
                     console.log('Vagas carregadas:', allJobs.length);
                     
-                    // Filtrar vagas destacadas primeiro, se houver
+                    // Filtrar vagas destacadas primeiro, se houver (e não estiver filtrando por empresa)
                     const featuredJobs = allJobs.filter(job => job.destacada == 1);
-                    if (featuredJobs.length > 0) {
+                    if (featuredJobs.length > 0 && !empresaId) {
                         displayJobs(featuredJobs.slice(0, displayedJobs));
                     } else {
                         displayJobs(allJobs.slice(0, displayedJobs));
@@ -236,9 +253,101 @@ include 'includes/footer.php';
             window.location.href = `detalhes-vaga.php?id=${jobId}`;
         }
 
-        function loadFeaturedCompanies() {
-            // Por enquanto, deixar vazio ou buscar empresas via API se necessário
-            document.getElementById('featuredCompanies').innerHTML = '<p class="text-gray-500 text-center">Empresas em destaque serão exibidas aqui.</p>';
+        async function loadFeaturedCompanies() {
+            const container = document.getElementById('featuredCompanies');
+            container.innerHTML = '<div class="col-span-full text-center py-8"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div><p class="mt-4 text-gray-500">Carregando empresas...</p></div>';
+            
+            try {
+                const response = await fetch('api/empresas_destaque.php?limit=6');
+                
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.success && result.data && result.data.length > 0) {
+                    displayCompanies(result.data);
+                } else {
+                    container.innerHTML = '<p class="text-gray-500 text-center col-span-full py-8">Nenhuma empresa em destaque no momento.</p>';
+                }
+            } catch (error) {
+                console.error('Erro ao carregar empresas em destaque:', error);
+                container.innerHTML = '<p class="text-red-500 text-center col-span-full py-8">Erro ao carregar empresas. Tente novamente mais tarde.</p>';
+            }
+        }
+        
+        function displayCompanies(empresas) {
+            const container = document.getElementById('featuredCompanies');
+            
+            // Placeholder SVG inline para evitar erro 404
+            const placeholderSvg = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjZTdlOWViIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzljYTNhZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkVtcHJlc2E8L3RleHQ+PC9zdmc+';
+            
+            container.innerHTML = empresas.map(empresa => {
+                const logoUrl = empresa.logo || placeholderSvg;
+                const nomeEmpresa = empresa.nome || 'Empresa';
+                const localizacao = empresa.localizacao || 'Não especificado';
+                
+                return `
+                    <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition cursor-pointer" onclick="viewCompanyJobs(${empresa.id})">
+                        <div class="flex flex-col items-center text-center">
+                            <div class="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-4 overflow-hidden border-2 border-purple-100 relative">
+                                ${empresa.logo ? 
+                                    `<img src="${logoUrl}" alt="${nomeEmpresa}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                                     <div class="w-full h-full items-center justify-center hidden" style="display: none;">
+                                        <i class="fas fa-building text-purple-600 text-3xl"></i>
+                                     </div>` :
+                                    `<i class="fas fa-building text-purple-600 text-3xl"></i>`
+                                }
+                            </div>
+                            <h3 class="font-bold text-lg text-gray-900 mb-1">${nomeEmpresa}</h3>
+                            <p class="text-sm text-gray-600 mb-2">${empresa.setor}</p>
+                            ${localizacao !== 'Não especificado' ? 
+                                `<p class="text-xs text-gray-500 mb-3">
+                                    <i class="fas fa-map-marker-alt mr-1"></i>${localizacao}
+                                </p>` : ''
+                            }
+                            <div class="flex items-center justify-center space-x-4 text-sm mt-2">
+                                <div class="flex items-center text-purple-600">
+                                    <i class="fas fa-briefcase mr-1"></i>
+                                    <span class="font-semibold">${empresa.vagas_ativas}</span>
+                                    <span class="text-gray-500 ml-1">vaga${empresa.vagas_ativas !== 1 ? 's' : ''}</span>
+                                </div>
+                                ${empresa.total_candidaturas > 0 ? 
+                                    `<div class="flex items-center text-gray-600">
+                                        <i class="fas fa-users mr-1"></i>
+                                        <span>${empresa.total_candidaturas}</span>
+                                    </div>` : ''
+                                }
+                            </div>
+                            <button class="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition text-sm font-medium">
+                                Ver Vagas
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function viewCompanyJobs(companyId) {
+            // Redirecionar para página de vagas com filtro de empresa
+            window.location.href = `vagas.php?empresa=${companyId}`;
+        }
+        
+        // Se houver empresaId na URL, mostrar botão para limpar filtro
+        if (empresaId) {
+            document.addEventListener('DOMContentLoaded', function() {
+                const searchBar = document.querySelector('.max-w-2xl.mx-auto');
+                if (searchBar) {
+                    const clearFilterBtn = document.createElement('button');
+                    clearFilterBtn.className = 'mt-4 bg-gray-200 text-gray-700 px-4 py-2 rounded-full hover:bg-gray-300 transition text-sm';
+                    clearFilterBtn.innerHTML = '<i class="fas fa-times mr-2"></i>Limpar filtro de empresa';
+                    clearFilterBtn.onclick = function() {
+                        window.location.href = 'vagas.php';
+                    };
+                    searchBar.appendChild(clearFilterBtn);
+                }
+            });
         }
 
         // Permitir busca ao pressionar Enter
