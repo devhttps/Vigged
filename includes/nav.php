@@ -28,9 +28,9 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 <!-- Navigation -->
 <nav class="bg-purple-600 text-white <?php echo $navType === 'authenticated' ? '' : 'h-16'; ?>">
     <div class="max-w-7xl mx-auto px-4 <?php echo $navType === 'authenticated' ? 'sm:px-6 lg:px-8' : ''; ?> <?php echo $navType === 'authenticated' ? '' : 'h-full'; ?> flex items-center justify-between">
-        <div class="flex items-center <?php echo $navType === 'authenticated' ? 'space-x-8' : ''; ?>">
+        <div class="flex items-center <?php echo $navType === 'authenticated' ? 'space-x-8' : 'space-x-8'; ?>">
             <a href="index.php" class="text-2xl font-bold">Vigged</a>
-            <div class="hidden md:flex space-x-6">
+            <div class="hidden md:flex space-x-6 ml-4">
                 <a href="index.php" class="hover:text-purple-200 transition <?php echo $currentPage === 'index.php' ? 'text-purple-200 font-semibold' : ''; ?>">Início</a>
                 <a href="vagas.php" class="hover:text-purple-200 transition <?php echo $currentPage === 'vagas.php' ? 'text-purple-200 font-semibold' : ''; ?>">Vagas</a>
                 <a href="empresas.php" class="hover:text-purple-200 transition <?php echo $currentPage === 'empresas.php' ? 'text-purple-200 font-semibold' : ''; ?>">Empresas</a>

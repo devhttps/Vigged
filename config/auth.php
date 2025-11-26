@@ -192,7 +192,7 @@ function getCurrentUser() {
         }
         
         $stmt->execute([$userId]);
-        return $stmt->fetch();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
         error_log("Erro ao obter usuário atual: " . $e->getMessage());
         return null;

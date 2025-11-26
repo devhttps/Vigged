@@ -265,8 +265,15 @@ if (!empty($userData['logradouro'])) {
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Foto de Perfil</label>
-                                <input type="file" name="foto_perfil" accept="image/jpeg,image/png,image/jpg" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent">
-                                <p class="text-xs text-gray-500 mt-1">Formatos aceitos: JPG, PNG. Tamanho máximo: 5MB. Dimensão ideal: 400x400px</p>
+                                <input type="file" name="foto_perfil" accept="image/jpeg,image/png,image/jpg,image/gif,image/webp" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent">
+                                <p class="text-xs text-gray-500 mt-1">
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    Formatos aceitos: JPG, PNG, GIF, WebP. 
+                                    Tamanho máximo: 5MB. 
+                                    Dimensão mínima: 100x100px. 
+                                    Dimensão máxima: 5000x5000px. 
+                                    Dimensão ideal: 400x400px
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -576,16 +583,107 @@ include 'includes/footer.php';
             document.getElementById('editModal').classList.add('hidden');
         }
 
-        // Preview de foto antes de enviar
+        // Preview e validação de foto antes de enviar
         document.querySelector('input[name="foto_perfil"]')?.addEventListener('change', function(e) {
             const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('profilePhoto').src = e.target.result;
-                };
-                reader.readAsDataURL(file);
+            const fileInput = e.target;
+            const errorMsg = fileInput.parentElement.querySelector('.file-error');
+            
+            // Remover mensagem de erro anterior
+            if (errorMsg) {
+                errorMsg.remove();
             }
+            
+            if (!file) {
+                return;
+            }
+            
+            // Validar tipo de arquivo
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+            if (!allowedTypes.includes(file.type)) {
+                const errorDiv = document.createElement('p');
+                errorDiv.className = 'file-error text-red-600 text-xs mt-1';
+                errorDiv.textContent = 'Formato não permitido. Use apenas JPG, PNG, GIF ou WebP.';
+                fileInput.parentElement.appendChild(errorDiv);
+                fileInput.value = '';
+                return;
+            }
+            
+            // Validar tamanho (máximo 5MB)
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            if (file.size > maxSize) {
+                const errorDiv = document.createElement('p');
+                errorDiv.className = 'file-error text-red-600 text-xs mt-1';
+                errorDiv.textContent = 'Arquivo muito grande. Tamanho máximo: 5MB.';
+                fileInput.parentElement.appendChild(errorDiv);
+                fileInput.value = '';
+                return;
+            }
+            
+            // Validar dimensões usando FileReader e Image
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const minWidth = 100;
+                    const minHeight = 100;
+                    const maxWidth = 5000;
+                    const maxHeight = 5000;
+                    
+                    if (img.width < minWidth || img.height < minHeight) {
+                        const errorDiv = document.createElement('p');
+                        errorDiv.className = 'file-error text-red-600 text-xs mt-1';
+                        errorDiv.textContent = `Imagem muito pequena. Dimensão mínima: ${minWidth}x${minHeight}px.`;
+                        fileInput.parentElement.appendChild(errorDiv);
+                        fileInput.value = '';
+                        return;
+                    }
+                    
+                    if (img.width > maxWidth || img.height > maxHeight) {
+                        const errorDiv = document.createElement('p');
+                        errorDiv.className = 'file-error text-red-600 text-xs mt-1';
+                        errorDiv.textContent = `Imagem muito grande. Dimensão máxima: ${maxWidth}x${maxHeight}px.`;
+                        fileInput.parentElement.appendChild(errorDiv);
+                        fileInput.value = '';
+                        return;
+                    }
+                    
+                    // Se passou todas as validações, mostrar preview
+                    const profilePhoto = document.getElementById('profilePhoto');
+                    if (profilePhoto) {
+                        profilePhoto.src = e.target.result;
+                    }
+                    
+                    // Mostrar mensagem de sucesso
+                    const successDiv = document.createElement('p');
+                    successDiv.className = 'file-success text-green-600 text-xs mt-1';
+                    successDiv.innerHTML = `<i class="fas fa-check-circle mr-1"></i>Imagem válida (${img.width}x${img.height}px, ${(file.size / 1024).toFixed(2)}KB)`;
+                    fileInput.parentElement.appendChild(successDiv);
+                    
+                    // Remover mensagem de sucesso após 3 segundos
+                    setTimeout(() => {
+                        if (successDiv.parentElement) {
+                            successDiv.remove();
+                        }
+                    }, 3000);
+                };
+                img.onerror = function() {
+                    const errorDiv = document.createElement('p');
+                    errorDiv.className = 'file-error text-red-600 text-xs mt-1';
+                    errorDiv.textContent = 'Arquivo não é uma imagem válida.';
+                    fileInput.parentElement.appendChild(errorDiv);
+                    fileInput.value = '';
+                };
+                img.src = e.target.result;
+            };
+            reader.onerror = function() {
+                const errorDiv = document.createElement('p');
+                errorDiv.className = 'file-error text-red-600 text-xs mt-1';
+                errorDiv.textContent = 'Erro ao ler o arquivo.';
+                fileInput.parentElement.appendChild(errorDiv);
+                fileInput.value = '';
+            };
+            reader.readAsDataURL(file);
         });
 
         // Máscaras e busca automática de CEP

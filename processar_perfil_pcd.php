@@ -116,16 +116,35 @@ if (!empty($nova_senha) || !empty($senha_atual) || !empty($confirmar_senha)) {
 // Processar upload de foto de perfil
 $foto_perfil_path = null;
 if (isset($_FILES['foto_perfil']) && $_FILES['foto_perfil']['error'] === UPLOAD_ERR_OK) {
-    $foto_perfil_path = processProfilePhotoUpload($_FILES['foto_perfil'], $user_id);
+    $uploadResult = processProfilePhotoUpload($_FILES['foto_perfil'], $user_id);
     
-    if ($foto_perfil_path === false) {
-        $errors[] = "Erro ao processar foto de perfil. Verifique se o arquivo é uma imagem válida (JPG/PNG) e não excede 5MB.";
+    if (!$uploadResult['success']) {
+        $errors[] = "Erro ao processar foto de perfil: " . ($uploadResult['error'] ?? 'Erro desconhecido');
     } else {
+        $foto_perfil_path = $uploadResult['path'];
         // Remover foto antiga se existir
-        if (!empty($currentUser['foto_perfil']) && file_exists($currentUser['foto_perfil'])) {
-            @unlink($currentUser['foto_perfil']);
+        if (!empty($currentUser['foto_perfil'])) {
+            $oldPhotoPath = strpos($currentUser['foto_perfil'], '/') === 0 
+                ? substr($currentUser['foto_perfil'], 1) 
+                : $currentUser['foto_perfil'];
+            $fullOldPath = __DIR__ . '/' . $oldPhotoPath;
+            if (file_exists($fullOldPath)) {
+                @unlink($fullOldPath);
+            }
         }
     }
+} elseif (isset($_FILES['foto_perfil']) && $_FILES['foto_perfil']['error'] !== UPLOAD_ERR_NO_FILE) {
+    // Se houve erro no upload mas não foi "nenhum arquivo"
+    $errorMessages = [
+        UPLOAD_ERR_INI_SIZE => 'O arquivo excede o tamanho máximo permitido pelo servidor.',
+        UPLOAD_ERR_FORM_SIZE => 'O arquivo excede o tamanho máximo permitido pelo formulário.',
+        UPLOAD_ERR_PARTIAL => 'O arquivo foi enviado parcialmente.',
+        UPLOAD_ERR_NO_TMP_DIR => 'Falta uma pasta temporária.',
+        UPLOAD_ERR_CANT_WRITE => 'Falha ao escrever o arquivo no disco.',
+        UPLOAD_ERR_EXTENSION => 'Uma extensão PHP interrompeu o upload do arquivo.'
+    ];
+    $errorMsg = $errorMessages[$_FILES['foto_perfil']['error']] ?? 'Erro desconhecido no upload.';
+    $errors[] = "Erro ao fazer upload da foto de perfil: " . $errorMsg;
 }
 
 // Processar upload de currículo

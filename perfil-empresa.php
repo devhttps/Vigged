@@ -29,7 +29,7 @@ unset($_SESSION['perfil_errors'], $_SESSION['perfil_success']);
                     <div class="flex items-end space-x-4">
                         <div class="relative -mt-16">
                             <img id="companyLogo" src="/placeholder.svg?height=120&width=120" alt="Logo da empresa" class="w-32 h-32 rounded-lg border-4 border-white object-cover bg-white">
-                            <button onclick="openEditCompanyModal()" class="absolute bottom-0 right-0 bg-purple-600 text-white p-2 rounded-full hover:bg-purple-700 transition">
+                            <button onclick="openUploadLogoModal()" class="absolute bottom-0 right-0 bg-purple-600 text-white p-2 rounded-full hover:bg-purple-700 transition" title="Alterar Logo">
                                 <i class="fas fa-camera text-sm"></i>
                             </button>
                         </div>
@@ -334,6 +334,39 @@ unset($_SESSION['perfil_errors'], $_SESSION['perfil_success']);
         </div>
     </div>
 
+    <!-- Upload Logo Modal -->
+    <div id="uploadLogoModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-lg max-w-md w-full">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-gray-900">Alterar Logo da Empresa</h3>
+                    <button onclick="closeUploadLogoModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <form id="uploadLogoForm" enctype="multipart/form-data" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Selecione uma imagem</label>
+                        <input type="file" id="logoFile" name="logo" accept="image/jpeg,image/png,image/gif,image/webp" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent">
+                        <p class="text-xs text-gray-500 mt-1">Formatos aceitos: JPEG, PNG, GIF, WebP. Tamanho máximo: 5MB</p>
+                    </div>
+                    <div id="logoPreview" class="hidden">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Preview</label>
+                        <img id="logoPreviewImg" src="" alt="Preview" class="w-32 h-32 rounded-lg border-2 border-gray-300 object-cover">
+                    </div>
+                    <div class="flex justify-end space-x-3 pt-4">
+                        <button type="button" onclick="closeUploadLogoModal()" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
+                            <i class="fas fa-upload mr-2"></i>Enviar Logo
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Edit Company Modal -->
     <div id="editCompanyModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -500,42 +533,111 @@ include 'includes/footer.php';
 
         // Load company data from API
         async function loadCompanyData() {
+            const companyNameElement = document.getElementById('companyName');
+            if (!companyNameElement) {
+                console.error('Elemento companyName não encontrado');
+                return;
+            }
+            
+            companyNameElement.textContent = 'Carregando...';
+            
             try {
+                console.log('Carregando dados da empresa...');
                 const response = await obterDadosEmpresa();
-                if (response.success && response.data) {
+                console.log('Resposta recebida:', response);
+                
+                if (response && response.success && response.data) {
                     companyData = response.data;
+                    console.log('Dados da empresa carregados:', companyData);
                     displayCompanyData();
-                    loadActiveJobs();
+                    // Carregar vagas após carregar dados da empresa
+                    setTimeout(() => {
+                        loadActiveJobs();
+                    }, 100);
                 } else {
-                    console.error('Erro ao carregar dados da empresa:', response.error);
-                    document.getElementById('companyName').textContent = 'Erro ao carregar dados';
+                    const errorMsg = (response && response.error) ? response.error : 'Erro desconhecido';
+                    console.error('Erro ao carregar dados da empresa:', errorMsg, response);
+                    companyNameElement.textContent = 'Erro ao carregar dados';
+                    companyNameElement.style.color = 'red';
+                    
+                    // Mostrar mensagem de erro mais detalhada
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'bg-red-50 border border-red-200 rounded-lg p-4 mt-2';
+                    errorDiv.innerHTML = `
+                        <p class="text-red-800 font-medium">Erro ao carregar dados da empresa</p>
+                        <p class="text-red-600 text-sm mt-1">${errorMsg}</p>
+                        <button onclick="loadCompanyData()" class="mt-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-sm">
+                            <i class="fas fa-redo mr-2"></i>Tentar Novamente
+                        </button>
+                    `;
+                    companyNameElement.parentElement.appendChild(errorDiv);
                 }
             } catch (error) {
                 console.error('Erro ao carregar dados da empresa:', error);
-                document.getElementById('companyName').textContent = 'Erro ao carregar dados';
+                companyNameElement.textContent = 'Erro ao carregar dados';
+                companyNameElement.style.color = 'red';
             }
         }
 
         function displayCompanyData() {
-            if (!companyData) return;
+            if (!companyData) {
+                console.error('companyData é null ou undefined');
+                return;
+            }
+
+            console.log('Exibindo dados da empresa:', companyData);
 
             // Nome da empresa
-            document.getElementById('companyName').textContent = companyData.nome_fantasia || companyData.razao_social || 'Sem nome';
-            document.getElementById('companyIndustry').textContent = companyData.setor || '-';
+            const companyNameEl = document.getElementById('companyName');
+            if (companyNameEl) {
+                companyNameEl.textContent = companyData.nome_fantasia || companyData.razao_social || 'Sem nome';
+                companyNameEl.style.color = ''; // Resetar cor se estava em vermelho
+            } else {
+                console.error('Elemento companyName não encontrado');
+            }
+            
+            // Setor/Indústria
+            const companyIndustryEl = document.getElementById('companyIndustry');
+            if (companyIndustryEl) {
+                companyIndustryEl.textContent = companyData.setor || '-';
+            } else {
+                console.warn('Elemento companyIndustry não encontrado');
+            }
             
             // Localização
-            const location = [];
-            if (companyData.cidade) location.push(companyData.cidade);
-            if (companyData.estado) location.push(companyData.estado);
-            document.getElementById('companyLocation').textContent = location.length > 0 ? location.join(', ') : '-';
+            const companyLocationEl = document.getElementById('companyLocation');
+            if (companyLocationEl) {
+                const location = [];
+                if (companyData.cidade) location.push(companyData.cidade);
+                if (companyData.estado) location.push(companyData.estado);
+                companyLocationEl.textContent = location.length > 0 ? location.join(', ') : '-';
+            } else {
+                console.warn('Elemento companyLocation não encontrado');
+            }
             
             // Sobre
-            document.getElementById('companyAbout').textContent = companyData.descricao || 'Nenhuma descrição disponível.';
+            const companyAboutEl = document.getElementById('companyAbout');
+            if (companyAboutEl) {
+                companyAboutEl.textContent = companyData.descricao || 'Nenhuma descrição disponível.';
+            } else {
+                console.warn('Elemento companyAbout não encontrado');
+            }
             
             // Logo
-            if (companyData.logo_path) {
-                const logoUrl = companyData.logo_path.startsWith('http') ? companyData.logo_path : '<?php echo BASE_URL; ?>/' + companyData.logo_path;
-                document.getElementById('companyLogo').src = logoUrl;
+            const logoImg = document.getElementById('companyLogo');
+            if (logoImg) {
+                if (companyData.logo_path) {
+                    const logoUrl = companyData.logo_path.startsWith('http') ? companyData.logo_path : '<?php echo BASE_URL; ?>/' + companyData.logo_path;
+                    logoImg.src = logoUrl;
+                    logoImg.onerror = function() {
+                        // Se a imagem não carregar, usar placeholder padrão
+                        this.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgZmlsbD0iI2U1ZTdlYiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5Mb2dvPC90ZXh0Pjwvc3ZnPg==';
+                    };
+                } else {
+                    logoImg.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgZmlsbD0iI2U1ZTdlYiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5Mb2dvPC90ZXh0Pjwvc3ZnPg==';
+                }
+            } else {
+                console.warn('Elemento companyLogo não encontrado');
             }
             
             // Plano
@@ -545,47 +647,86 @@ include 'includes/footer.php';
                 'profissional': 'Profissional',
                 'enterprise': 'Enterprise'
             };
-            document.getElementById('planName').textContent = planNames[companyData.plano] || 'Gratuito';
+            const planNameEl = document.getElementById('planName');
+            if (planNameEl) {
+                planNameEl.textContent = planNames[companyData.plano] || 'Gratuito';
+            } else {
+                console.warn('Elemento planName não encontrado');
+            }
             
             // Status do plano
             const planStatus = companyData.plano_status || 'ativo';
             const statusElement = document.getElementById('planStatus');
             const pendingMessage = document.getElementById('planPendingMessage');
             
-            if (planStatus === 'pendente') {
-                statusElement.innerHTML = '<span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-semibold">Pendente</span>';
-                if (pendingMessage) pendingMessage.classList.remove('hidden');
-            } else if (planStatus === 'ativo') {
-                statusElement.innerHTML = '<span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-semibold">Ativo</span>';
-                if (pendingMessage) pendingMessage.classList.add('hidden');
-            } else if (planStatus === 'cancelado') {
-                statusElement.innerHTML = '<span class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-semibold">Cancelado</span>';
-                if (pendingMessage) pendingMessage.classList.add('hidden');
+            if (statusElement) {
+                if (planStatus === 'pendente') {
+                    statusElement.innerHTML = '<span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-semibold">Pendente</span>';
+                    if (pendingMessage) pendingMessage.classList.remove('hidden');
+                } else if (planStatus === 'ativo') {
+                    statusElement.innerHTML = '<span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-semibold">Ativo</span>';
+                    if (pendingMessage) pendingMessage.classList.add('hidden');
+                } else if (planStatus === 'cancelado') {
+                    statusElement.innerHTML = '<span class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-semibold">Cancelado</span>';
+                    if (pendingMessage) pendingMessage.classList.add('hidden');
+                } else {
+                    statusElement.innerHTML = '<span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-semibold">' + planStatus + '</span>';
+                    if (pendingMessage) pendingMessage.classList.add('hidden');
+                }
             } else {
-                statusElement.innerHTML = '<span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-semibold">' + planStatus + '</span>';
-                if (pendingMessage) pendingMessage.classList.add('hidden');
+                console.warn('Elemento planStatus não encontrado');
             }
             
-            // Estatísticas
-            document.getElementById('vagasAtivas').textContent = companyData.vagas_ativas || 0;
-            document.getElementById('totalCandidatos').textContent = companyData.total_candidaturas || 0;
-            document.getElementById('totalVagas').textContent = companyData.total_vagas || 0;
-            document.getElementById('totalCandidaturas').textContent = companyData.total_candidaturas || 0;
-            document.getElementById('vagasAtivasStats').textContent = companyData.vagas_ativas || 0;
+            // Estatísticas - verificar cada elemento antes de atualizar
+            const vagasAtivasEl = document.getElementById('vagasAtivas');
+            if (vagasAtivasEl) {
+                vagasAtivasEl.textContent = companyData.vagas_ativas || 0;
+            }
+            
+            const totalCandidatosEl = document.getElementById('totalCandidatos');
+            if (totalCandidatosEl) {
+                totalCandidatosEl.textContent = companyData.total_candidaturas || 0;
+            }
+            
+            const totalVagasEl = document.getElementById('totalVagas');
+            if (totalVagasEl) {
+                totalVagasEl.textContent = companyData.total_vagas || 0;
+            }
+            
+            const totalCandidaturasEl = document.getElementById('totalCandidaturas');
+            if (totalCandidaturasEl) {
+                totalCandidaturasEl.textContent = companyData.total_candidaturas || 0;
+            }
+            
+            const vagasAtivasStatsEl = document.getElementById('vagasAtivasStats');
+            if (vagasAtivasStatsEl) {
+                vagasAtivasStatsEl.textContent = companyData.vagas_ativas || 0;
+            }
+            
+            console.log('Dados da empresa exibidos com sucesso');
         }
 
         async function loadActiveJobs() {
+            const jobsListElement = document.getElementById('activeJobsList');
+            if (!jobsListElement) {
+                console.error('Elemento activeJobsList não encontrado');
+                return;
+            }
+            
+            jobsListElement.innerHTML = '<p class="text-gray-500 text-center py-8">Carregando vagas...</p>';
+            
             const status = document.getElementById('filterJobStatus')?.value || 'ativa';
             const titleFilter = document.getElementById('filterJobTitle')?.value || '';
             
             try {
                 const response = await obterVagasEmpresa(status === 'todas' ? 'todas' : status);
-                if (response.success && response.data) {
+                
+                if (response && response.success && response.data) {
                     // Filtrar por título se necessário
-                    let filteredJobs = response.data;
+                    let filteredJobs = Array.isArray(response.data) ? response.data : [];
                     if (titleFilter) {
                         filteredJobs = filteredJobs.filter(job => 
-                            job.titulo.toLowerCase().includes(titleFilter.toLowerCase())
+                            job.titulo && job.titulo.toLowerCase().includes(titleFilter.toLowerCase())
                         );
                     }
                     jobsData = filteredJobs;
@@ -593,8 +734,8 @@ include 'includes/footer.php';
                     setupFilters();
                 } else {
                     console.error('Erro ao carregar vagas:', response);
-                    const errorMsg = response.error || 'Erro desconhecido ao carregar vagas';
-                    document.getElementById('activeJobsList').innerHTML = `
+                    const errorMsg = (response && response.error) ? response.error : 'Erro desconhecido ao carregar vagas';
+                    jobsListElement.innerHTML = `
                         <div class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
                             <i class="fas fa-exclamation-circle text-red-600 text-2xl mb-2"></i>
                             <p class="text-red-800 font-medium">${errorMsg}</p>
@@ -606,10 +747,10 @@ include 'includes/footer.php';
                 }
             } catch (error) {
                 console.error('Erro ao carregar vagas:', error);
-                document.getElementById('activeJobsList').innerHTML = `
+                jobsListElement.innerHTML = `
                     <div class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
                         <i class="fas fa-exclamation-circle text-red-600 text-2xl mb-2"></i>
-                        <p class="text-red-800 font-medium">Erro ao carregar vagas: ${error.message}</p>
+                        <p class="text-red-800 font-medium">Erro ao carregar vagas: ${error.message || 'Erro desconhecido'}</p>
                         <p class="text-red-600 text-sm mt-2">Verifique o console para mais detalhes</p>
                         <button onclick="loadActiveJobs()" class="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
                             <i class="fas fa-redo mr-2"></i>Tentar Novamente
@@ -1037,6 +1178,66 @@ include 'includes/footer.php';
             document.getElementById('plansModal').classList.add('hidden');
         }
 
+        function openUploadLogoModal() {
+            document.getElementById('uploadLogoModal').classList.remove('hidden');
+        }
+
+        function closeUploadLogoModal() {
+            document.getElementById('uploadLogoModal').classList.add('hidden');
+            document.getElementById('uploadLogoForm').reset();
+            document.getElementById('logoPreview').classList.add('hidden');
+        }
+
+        // Preview da imagem antes de enviar
+        document.getElementById('logoFile')?.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('logoPreviewImg').src = e.target.result;
+                    document.getElementById('logoPreview').classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                document.getElementById('logoPreview').classList.add('hidden');
+            }
+        });
+
+        // Upload do logo
+        document.getElementById('uploadLogoForm')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById('logoFile');
+            if (!fileInput.files.length) {
+                alert('Selecione uma imagem');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('logo', fileInput.files[0]);
+            
+            try {
+                const response = await fetch('api/upload_logo_empresa.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Logo atualizado com sucesso!');
+                    closeUploadLogoModal();
+                    // Recarregar dados da empresa para atualizar o logo
+                    await loadCompanyData();
+                } else {
+                    alert('Erro ao atualizar logo: ' + (result.error || 'Erro desconhecido'));
+                }
+            } catch (error) {
+                console.error('Erro ao fazer upload do logo:', error);
+                alert('Erro ao fazer upload do logo. Tente novamente.');
+            }
+        });
+
         function openEditCompanyModal() {
             if (companyData) {
                 document.getElementById('editCompanyName').value = companyData.nome_fantasia || companyData.razao_social || '';
@@ -1304,10 +1505,24 @@ include 'includes/footer.php';
         }
 
         // Load data on page load
-        loadCompanyData();
-        
-        // Inicializar tab de vagas como ativa
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM carregado, iniciando carregamento de dados...');
             switchTab('vagas');
+            
+            // Aguardar um pouco para garantir que tudo está pronto
+            setTimeout(() => {
+                loadCompanyData();
+            }, 100);
         });
+        
+        // Também tentar carregar imediatamente se o DOM já estiver pronto
+        if (document.readyState === 'loading') {
+            // DOM ainda não está pronto, aguardar evento
+        } else {
+            // DOM já está pronto
+            console.log('DOM já pronto, carregando dados imediatamente...');
+            setTimeout(() => {
+                loadCompanyData();
+            }, 100);
+        }
     </script>
