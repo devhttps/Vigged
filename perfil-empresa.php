@@ -1673,13 +1673,15 @@ include 'includes/footer.php';
                     alert('Sua conta foi excluída com sucesso. Você será redirecionado para a página inicial.');
                     window.location.href = 'index.php';
                 } else {
-                    alert('Erro ao excluir conta: ' + (result.error || 'Erro desconhecido'));
+                    const errorMsg = result.error || 'Erro desconhecido';
+                    console.error('Erro ao excluir conta:', result);
+                    alert('Erro ao excluir conta: ' + errorMsg + (result.debug ? '\n\nDetalhes: ' + result.debug : ''));
                     deleteButton.disabled = false;
                     deleteButton.innerHTML = originalText;
                 }
             } catch (error) {
                 console.error('Erro ao excluir conta:', error);
-                alert('Erro ao excluir conta. Tente novamente mais tarde.');
+                alert('Erro ao excluir conta: ' + (error.message || 'Tente novamente mais tarde.'));
                 deleteButton.disabled = false;
                 deleteButton.innerHTML = originalText;
             }

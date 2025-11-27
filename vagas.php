@@ -183,20 +183,20 @@ include 'includes/footer.php';
                 const salary = job.faixa_salarial || 'A combinar';
                 
                 return `
-                    <div class="bg-white rounded-lg p-6 flex items-center justify-between hover:shadow-lg transition">
-                        <div class="flex-1">
+                <div class="bg-white rounded-lg p-6 flex items-center justify-between hover:shadow-lg transition">
+                    <div class="flex-1">
                             <h3 class="font-bold text-xl mb-2 text-gray-800">${job.titulo || 'Sem título'}</h3>
                             <p class="text-gray-600 mb-2">${companyName}</p>
-                            <div class="flex items-center space-x-4 text-sm text-gray-500">
+                        <div class="flex items-center space-x-4 text-sm text-gray-500">
                                 <span><i class="fas fa-map-marker-alt mr-1"></i>${location}</span>
-                                <span>•</span>
+                            <span>•</span>
                                 <span><i class="fas fa-briefcase mr-1"></i>${type}</span>
-                                <span>•</span>
+                            <span>•</span>
                                 <span><i class="fas fa-dollar-sign mr-1"></i>${salary}</span>
-                            </div>
                         </div>
-                        <button onclick="viewJob(${job.id})" class="bg-purple-600 text-white px-6 py-2 rounded-full hover:bg-purple-700 transition font-semibold">Ver vaga</button>
                     </div>
+                    <button onclick="viewJob(${job.id})" class="bg-purple-600 text-white px-6 py-2 rounded-full hover:bg-purple-700 transition font-semibold">Ver vaga</button>
+                </div>
                 `;
             }).join('');
         }
@@ -238,7 +238,7 @@ include 'includes/footer.php';
             const searchTerm = document.getElementById('searchInput').value.trim();
             
             if (!searchTerm) {
-                loadFeaturedJobs();
+            loadFeaturedJobs();
                 return;
             }
             
@@ -285,7 +285,7 @@ include 'includes/footer.php';
                 
                 if (result.success && result.data && result.data.length > 0) {
                     displayCompanies(result.data);
-                } else {
+            } else {
                     container.innerHTML = '<p class="text-gray-500 text-center col-span-full py-8">Nenhuma empresa em destaque no momento.</p>';
                 }
             } catch (error) {
@@ -340,8 +340,8 @@ include 'includes/footer.php';
                             <button class="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition text-sm font-medium">
                                 Ver Vagas
                             </button>
+                            </div>
                         </div>
-                    </div>
                 `;
             }).join('');
         }

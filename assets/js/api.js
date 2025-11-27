@@ -734,22 +734,36 @@ async function excluirConta() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
-            }
+            },
+            credentials: 'include' // Incluir cookies de sessão
         });
         
+        const responseText = await response.text();
+        console.log('Resposta da API (excluir conta):', response.status, responseText);
+        
         if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Erro HTTP ao excluir conta:', response.status, errorText);
+            console.error('Erro HTTP ao excluir conta:', response.status, responseText);
             let errorData;
             try {
-                errorData = JSON.parse(errorText);
+                errorData = JSON.parse(responseText);
             } catch (e) {
-                errorData = { error: errorText || `Erro ${response.status}` };
+                errorData = { error: responseText || `Erro ${response.status}` };
             }
-            return { success: false, error: errorData.error || 'Erro ao excluir conta' };
+            return { 
+                success: false, 
+                error: errorData.error || 'Erro ao excluir conta',
+                debug: errorData.debug || null
+            };
         }
         
-        const data = await response.json();
+        let data;
+        try {
+            data = JSON.parse(responseText);
+        } catch (e) {
+            console.error('Erro ao parsear JSON:', e, responseText);
+            return { success: false, error: 'Resposta inválida do servidor' };
+        }
+        
         return data;
     } catch (error) {
         console.error('Erro ao excluir conta:', error);
