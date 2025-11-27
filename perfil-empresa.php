@@ -1661,6 +1661,13 @@ include 'includes/footer.php';
                 return;
             }
             
+            // Verificar se ViggedAPI está disponível
+            if (!window.ViggedAPI || !window.ViggedAPI.excluirConta) {
+                console.error('ViggedAPI não está disponível. Verifique se o arquivo api.js foi carregado.');
+                alert('Erro: API não disponível. Por favor, recarregue a página e tente novamente.');
+                return;
+            }
+            
             const deleteButton = document.getElementById('confirmDeleteButton');
             const originalText = deleteButton.innerHTML;
             deleteButton.disabled = true;

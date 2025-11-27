@@ -558,6 +558,7 @@ $footerStyle = 'dark';
 include 'includes/footer.php';
 ?>
 
+    <script src="assets/js/api.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <script>
         // Funções para gerenciar habilidades
@@ -1074,6 +1075,13 @@ include 'includes/footer.php';
             const confirmInput = document.getElementById('confirmDeleteInput');
             if (confirmInput.value.toLowerCase() !== 'excluir') {
                 alert('Por favor, digite "EXCLUIR" para confirmar a exclusão da conta.');
+                return;
+            }
+            
+            // Verificar se ViggedAPI está disponível
+            if (!window.ViggedAPI || !window.ViggedAPI.excluirConta) {
+                console.error('ViggedAPI não está disponível. Verifique se o arquivo api.js foi carregado.');
+                alert('Erro: API não disponível. Por favor, recarregue a página e tente novamente.');
                 return;
             }
             
