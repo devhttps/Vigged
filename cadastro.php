@@ -104,9 +104,7 @@
                             maxlength="14"
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         >
-                    </div>
-
-                    <div>
+                    </div>             
 <div>
     <label for="data_nascimento" class="block text-sm font-medium text-gray-700 mb-2">
         Data de Nascimento *
@@ -348,9 +346,9 @@
                             <input type="checkbox" name="aceita_termos" required class="mt-1 text-purple-600 focus:ring-purple-500 rounded">
                             <span class="ml-2 text-gray-700">
                                 Concordo com os 
-                                <a href="#" class="text-purple-600 hover:underline">termos de uso</a> 
+                                <a href="termos.php" class="text-purple-600 hover:underline">termos de uso</a> 
                                 e 
-                                <a href="#" class="text-purple-600 hover:underline">política de privacidade</a>
+                                <a href="politica.php" class="text-purple-600 hover:underline">política de privacidade</a>
                             </span>
                         </label>
                     </div>
@@ -375,11 +373,6 @@
             </div>
         </form>
     </div>
-
-<?php
-// Incluir footer padrão
-include 'includes/footer.php';
-?>
 
     <script>
         window.addEventListener('DOMContentLoaded', function() {

@@ -26,7 +26,7 @@ include 'includes/nav.php';
                     </p>
                 </div>
                 <div class="flex justify-center">
-                    <img src="garoto.png" alt="Profissional PCD" class="max-w-full h-auto">
+                    <img src="ribeiro.jpg" alt="Profissional PCD" class="max-w-full h-auto">
                 </div>
             </div>
         </div>
@@ -36,7 +36,7 @@ include 'includes/nav.php';
     <section class="bg-gradient-to-br from-purple-600 to-purple-800 py-16 px-6"">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
-                <h2 class="text-3xl font-bold mb-4">Recursos que Facilitam Sua Jornada Profissional</h2>
+                <h2 class="text-3xl text-purple-100 font-bold mb-4">Recursos que Facilitam Sua Jornada Profissional</h2>
                 <p class="text-purple-100 max-w-3xl mx-auto">
                     Nossas funcionalidades foram pensadas para tornar sua busca por oportunidades mais acessível, prática e inclusiva. Conecte-se com o mercado de forma simples e segura.
                 </p>
